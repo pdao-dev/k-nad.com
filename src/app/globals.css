@@ -113,10 +113,234 @@
 }
 
 @layer base {
-    * {
-        @apply border-border outline-ring/50;
-    }
-    body {
-        @apply bg-background text-foreground;
-    }
+	* {
+		@apply border-border outline-ring/50;
+	}
+	html {
+		scroll-behavior: smooth;
+	}
+	body {
+		@apply bg-background text-foreground;
+		background: radial-gradient(
+				ellipse at top,
+				#1e1b4b 0%,
+				#0f0a2e 50%,
+				#0a0a0f 100%
+			);
+		min-height: 100vh;
+	}
+}
+
+/* K-nads.com Design System - Monad Inspired */
+@layer components {
+	/* Hero Title - Monad Style */
+	.hero-title {
+		font-size: clamp(3rem, 12vw, 8rem);
+		font-weight: 900;
+		line-height: 0.9;
+		background: linear-gradient(180deg, #fff 0%, #a78bfa 50%, #7c3aed 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+		text-shadow: 0 0 80px rgba(139, 92, 246, 0.5);
+		letter-spacing: -0.02em;
+	}
+
+	.hero-subtitle {
+		font-size: clamp(1rem, 2vw, 1.5rem);
+		font-weight: 500;
+		color: rgba(255, 255, 255, 0.7);
+		letter-spacing: 0.05em;
+	}
+
+	/* Glassmorphism Card */
+	.glass-card {
+		background: rgba(124, 58, 237, 0.1);
+		backdrop-filter: blur(20px);
+		-webkit-backdrop-filter: blur(20px);
+		border: 1px solid rgba(167, 139, 250, 0.2);
+		border-radius: 16px;
+		box-shadow: 0 8px 32px rgba(124, 58, 237, 0.2);
+	}
+
+	/* Primary Button - Monad Style */
+	.primary-button {
+		background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+		padding: 1rem 2.5rem;
+		border-radius: 12px;
+		font-weight: 700;
+		font-size: 1.1rem;
+		transition: all 0.3s ease;
+		color: white;
+		border: 2px solid rgba(167, 139, 250, 0.3);
+		cursor: pointer;
+		box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.primary-button:hover {
+		transform: translateY(-4px) scale(1.02);
+		box-shadow: 0 8px 30px rgba(124, 58, 237, 0.6);
+		border-color: rgba(167, 139, 250, 0.6);
+	}
+
+	/* Body Text */
+	.body-text {
+		font-size: 1rem;
+		line-height: 1.6;
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	/* Monad-style Gradient Background with Korean Accents */
+	.monad-gradient-bg {
+		position: relative;
+		background: radial-gradient(
+				ellipse at top,
+				#1e1b4b 0%,
+				#0f0a2e 50%,
+				#0a0a0f 100%
+			);
+	}
+
+	.monad-gradient-bg::before {
+		content: "";
+		position: absolute;
+		top: -50%;
+		left: -50%;
+		width: 200%;
+		height: 200%;
+		background: radial-gradient(
+				circle at 30% 40%,
+				rgba(99, 102, 241, 0.35) 0%,
+				transparent 50%
+			),
+			radial-gradient(
+				circle at 70% 60%,
+				rgba(139, 92, 246, 0.25) 0%,
+				transparent 50%
+			),
+			radial-gradient(
+				circle at 50% 50%,
+				rgba(79, 70, 229, 0.15) 0%,
+				transparent 70%
+			);
+		animation: monad-rotate 25s linear infinite;
+	}
+
+	/* Korean Flag Inspired Accent */
+	.monad-gradient-bg::after {
+		content: "";
+		position: absolute;
+		top: 10%;
+		right: 10%;
+		width: 350px;
+		height: 350px;
+		background: radial-gradient(
+			circle,
+			rgba(220, 38, 38, 0.12) 0%,
+			rgba(37, 99, 235, 0.12) 50%,
+			transparent 100%
+		);
+		border-radius: 50%;
+		filter: blur(80px);
+		opacity: 0.6;
+		animation: pulse-korean 8s ease-in-out infinite;
+	}
+
+	@keyframes monad-rotate {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+
+	@keyframes pulse-korean {
+		0%,
+		100% {
+			opacity: 0.4;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.7;
+			transform: scale(1.15);
+		}
+	}
+
+	/* Grid Pattern Overlay - Monad Diamond Pattern */
+	.grid-pattern {
+		background-image:
+			linear-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px),
+			linear-gradient(90deg, rgba(99, 102, 241, 0.08) 1px, transparent 1px),
+			linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+			linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+		background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+		opacity: 0.6;
+	}
+
+	/* Monad Logo Subtle Pattern */
+	.monad-logo-pattern {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		opacity: 0.015;
+		background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M100 30 Q130 50 140 80 Q150 110 130 130 Q110 150 80 140 Q50 130 40 100 Q30 70 50 50 Q70 30 100 30 M100 60 Q85 60 75 75 Q65 90 75 105 Q85 120 100 120 Q115 120 125 105 Q135 90 125 75 Q115 60 100 60 Z' fill='%236366f1' /%3E%3C/svg%3E");
+		background-repeat: repeat;
+		background-size: 250px 250px;
+		pointer-events: none;
+		animation: pattern-drift 60s linear infinite;
+	}
+
+	@keyframes pattern-drift {
+		0% {
+			background-position: 0 0;
+		}
+		100% {
+			background-position: 250px 250px;
+		}
+	}
+
+	/* Animated Gradient Orb */
+	@keyframes float {
+		0%,
+		100% {
+			transform: translate(0, 0) scale(1);
+		}
+		33% {
+			transform: translate(30px, -30px) scale(1.1);
+		}
+		66% {
+			transform: translate(-20px, 20px) scale(0.9);
+		}
+	}
+
+	.float-orb {
+		animation: float 8s ease-in-out infinite;
+	}
+}
+
+/* Dark mode is default for K-nads.com */
+:root {
+	/* Monad Brand Colors */
+	--monad-indigo: #6366f1;
+	--monad-violet: #8b5cf6;
+	--monad-purple: #7c3aed;
+	--monad-purple-light: #a78bfa;
+	--monad-purple-dark: #6d28d9;
+
+	/* Korean Flag Accent Colors */
+	--korean-red: #dc2626;
+	--korean-blue: #2563eb;
+
+	/* Background */
+	--k-nad-background-dark: #0a0a0f;
+	--k-nad-background: #0f0a2e;
+	--k-nad-surface: #1e1b4b;
+
+	/* Text */
+	--k-nad-text-primary: #ffffff;
+	--k-nad-text-secondary: #a3a3b8;
+	--k-nad-text-accent: #a78bfa;
 }
