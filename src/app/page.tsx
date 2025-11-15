@@ -8,6 +8,120 @@ import type { NFTImage } from "@/types/nft";
 const DEFAULT_ADDRESS = "0x0000000000000000000000000000000000000000";
 const GALLERY_LIMIT = 60;
 
+const demoAssetPath = (fileName: string) =>
+	`/assets/${encodeURIComponent(fileName).replace(/%2F/g, "/")}`;
+
+const DEMO_IMAGES: NFTImage[] = [
+	{
+		id: "demo-christmas-party",
+		imageUrl: demoAssetPath("Chrismas Party with Koreanads.jpeg"),
+		thumbnailUrl: demoAssetPath("Chrismas Party with Koreanads.jpeg"),
+		title: "Chrismas Party with Koreanads",
+		description: "2024년 12월, 크리스마스 시즌에 열린 Koreanads 밋업",
+		uploader: {
+			address: DEFAULT_ADDRESS,
+			username: "Koreanads",
+		},
+		nftMetadata: {
+			tokenId: "demo-001",
+			contractAddress: DEFAULT_ADDRESS,
+			transactionHash: "",
+			mintedAt: new Date("2024-12-20T00:00:00Z").toISOString(),
+		},
+		createdAt: new Date("2024-12-20T00:00:00Z").toISOString(),
+	},
+	{
+		id: "demo-ethseoul",
+		imageUrl: demoAssetPath("ETHSeoul_Koreanads Community Meetup.jpeg"),
+		thumbnailUrl: demoAssetPath("ETHSeoul_Koreanads Community Meetup.jpeg"),
+		title: "ETHSeoul Koreanads Community Meetup",
+		description: "ETHSeoul 기간 중 진행된 Koreanads 커뮤니티 모임",
+		uploader: {
+			address: DEFAULT_ADDRESS,
+			username: "Koreanads",
+		},
+		nftMetadata: {
+			tokenId: "demo-002",
+			contractAddress: DEFAULT_ADDRESS,
+			transactionHash: "",
+			mintedAt: new Date("2024-07-05T00:00:00Z").toISOString(),
+		},
+		createdAt: new Date("2024-07-05T00:00:00Z").toISOString(),
+	},
+	{
+		id: "demo-keone",
+		imageUrl: demoAssetPath("just keone.jpeg"),
+		thumbnailUrl: demoAssetPath("just keone.jpeg"),
+		title: "Just Keone",
+		description: "스탠딩 포즈의 Keone",
+		uploader: {
+			address: DEFAULT_ADDRESS,
+			username: "Keone",
+		},
+		nftMetadata: {
+			tokenId: "demo-003",
+			contractAddress: DEFAULT_ADDRESS,
+			transactionHash: "",
+			mintedAt: new Date("2024-11-10T00:00:00Z").toISOString(),
+		},
+		createdAt: new Date("2024-11-10T00:00:00Z").toISOString(),
+	},
+	{
+		id: "demo-kmon-festival",
+		imageUrl: demoAssetPath("K-MON Festival.jpeg"),
+		thumbnailUrl: demoAssetPath("K-MON Festival.jpeg"),
+		title: "K-MON Festival",
+		description: "2025 KBW 사이드 이벤트 현장",
+		uploader: {
+			address: DEFAULT_ADDRESS,
+			username: "Koreanads",
+		},
+		nftMetadata: {
+			tokenId: "demo-004",
+			contractAddress: DEFAULT_ADDRESS,
+			transactionHash: "",
+			mintedAt: new Date("2025-08-01T00:00:00Z").toISOString(),
+		},
+		createdAt: new Date("2025-08-01T00:00:00Z").toISOString(),
+	},
+	{
+		id: "demo-meet-monad",
+		imageUrl: demoAssetPath("Meet_Monad.jpeg"),
+		thumbnailUrl: demoAssetPath("Meet_Monad.jpeg"),
+		title: "Meet Monad",
+		description: "2025 KBW 공식 이벤트 현장",
+		uploader: {
+			address: DEFAULT_ADDRESS,
+			username: "Koreanads",
+		},
+		nftMetadata: {
+			tokenId: "demo-005",
+			contractAddress: DEFAULT_ADDRESS,
+			transactionHash: "",
+			mintedAt: new Date("2025-08-02T00:00:00Z").toISOString(),
+		},
+		createdAt: new Date("2025-08-02T00:00:00Z").toISOString(),
+	},
+	{
+		id: "demo-monad-eco",
+		imageUrl: demoAssetPath("Monad Eco Meetup.jpeg"),
+		thumbnailUrl: demoAssetPath("Monad Eco Meetup.jpeg"),
+		title: "Monad Eco Meetup",
+		description: "Merkle에서 열린 Monad 생태계 밋업",
+		uploader: {
+			address: DEFAULT_ADDRESS,
+			username: "Koreanads",
+		},
+		nftMetadata: {
+			tokenId: "demo-006",
+			contractAddress: DEFAULT_ADDRESS,
+			transactionHash: "",
+			mintedAt: new Date("2025-08-03T00:00:00Z").toISOString(),
+		},
+		createdAt: new Date("2025-08-03T00:00:00Z").toISOString(),
+	},
+];
+
 async function fetchGalleryImages(): Promise<NFTImage[]> {
 	const db = await getDb();
 
@@ -22,7 +136,7 @@ async function fetchGalleryImages(): Promise<NFTImage[]> {
 		.orderBy(desc(images.mintedAt))
 		.limit(GALLERY_LIMIT);
 
-	return records.map(({ image, uploader }) => {
+	const response = records.map(({ image, uploader }) => {
 		const createdAt = image.createdAt ?? new Date();
 		const mintedAt = image.mintedAt ?? createdAt;
 
@@ -46,6 +160,8 @@ async function fetchGalleryImages(): Promise<NFTImage[]> {
 			createdAt: createdAt.toISOString(),
 		};
 	});
+
+	return response.length > 0 ? response : DEMO_IMAGES;
 }
 
 function EmptyGalleryState() {
