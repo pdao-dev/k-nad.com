@@ -8,10 +8,15 @@ declare namespace Cloudflare {
 		CLOUDFLARE_D1_TOKEN: string;
 		CLOUDFLARE_R2_URL: string;
 		CLOUDFLARE_API_TOKEN: string;
+		NFT_CONTRACT_ADDRESS: string;
+		MONAD_RPC_URL: string;
+		ADMIN_USERNAME: string;
+		ADMIN_PASSWORD: string;
+		ADMIN_SESSION_SECRET: string;
 		BETTER_AUTH_SECRET: string;
 		BETTER_AUTH_URL: string;
 		k_nad_prod: R2Bucket;
-		"k-nad": D1Database;
+		k_nad: D1Database;
 		ASSETS: Fetcher;
 	}
 }

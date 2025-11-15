@@ -4,9 +4,11 @@ import * as schema from "./schema";
 
 export async function getDb() {
 	const { env } = await getCloudflareContext();
-	// !starterconf - update this to match your D1 database binding name
-	// change "next_cf_app" to your D1 database binding name on `wrangler.jsonc`
-	return drizzle(env["k-nad"], { schema });
+	if (!env?.k_nad) {
+		throw new Error("D1 database binding k_nad is not configured");
+	}
+
+	return drizzle(env.k_nad, { schema });
 }
 
 export * from "./schema";

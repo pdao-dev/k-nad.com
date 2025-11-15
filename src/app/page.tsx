@@ -1,113 +1,73 @@
+import Link from "next/link";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { getDb, images, users } from "@/db";
 import { GalleryGrid } from "@/components/gallery/GalleryGrid";
 import { HeroSection } from "@/components/hero/HeroSection";
+import type { NFTImage } from "@/types/nft";
 
-// Temporary mock data - will be replaced with real data from D1
-const mockImages = [
-	{
-		id: "1",
-		imageUrl: "https://picsum.photos/400/600?random=1",
-		thumbnailUrl: "https://picsum.photos/400/600?random=1",
-		title: "K-POP Concert 2024",
-		description: "Amazing concert experience in Seoul",
-		uploader: {
-			address: "0x1234567890123456789012345678901234567890",
-			username: "KpopFan",
-		},
-		nftMetadata: {
-			tokenId: "1",
-			contractAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
-			mintedAt: new Date().toISOString(),
-		},
-		createdAt: new Date().toISOString(),
-	},
-	{
-		id: "2",
-		imageUrl: "https://picsum.photos/400/500?random=2",
-		thumbnailUrl: "https://picsum.photos/400/500?random=2",
-		title: "Korean Street Food Festival",
-		description: "Delicious food and great atmosphere",
-		uploader: {
-			address: "0x2345678901234567890123456789012345678901",
-			username: "FoodLover",
-		},
-		nftMetadata: {
-			tokenId: "2",
-			contractAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
-			mintedAt: new Date().toISOString(),
-		},
-		createdAt: new Date().toISOString(),
-	},
-	{
-		id: "3",
-		imageUrl: "https://picsum.photos/400/700?random=3",
-		thumbnailUrl: "https://picsum.photos/400/700?random=3",
-		title: "Seoul Night View",
-		description: "Beautiful city lights from N Seoul Tower",
-		uploader: {
-			address: "0x3456789012345678901234567890123456789012",
-			username: "NightPhotographer",
-		},
-		nftMetadata: {
-			tokenId: "3",
-			contractAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
-			mintedAt: new Date().toISOString(),
-		},
-		createdAt: new Date().toISOString(),
-	},
-	{
-		id: "4",
-		imageUrl: "https://picsum.photos/400/550?random=4",
-		thumbnailUrl: "https://picsum.photos/400/550?random=4",
-		title: "Busan Beach Party",
-		description: "Summer vibes at Haeundae Beach",
-		uploader: {
-			address: "0x4567890123456789012345678901234567890123",
-			username: "BeachVibes",
-		},
-		nftMetadata: {
-			tokenId: "4",
-			contractAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
-			mintedAt: new Date().toISOString(),
-		},
-		createdAt: new Date().toISOString(),
-	},
-	{
-		id: "5",
-		imageUrl: "https://picsum.photos/400/650?random=5",
-		thumbnailUrl: "https://picsum.photos/400/650?random=5",
-		title: "Traditional Hanbok Experience",
-		description: "Beautiful hanbok photoshoot at Gyeongbokgung",
-		uploader: {
-			address: "0x5678901234567890123456789012345678901234",
-			username: "KoreaCulture",
-		},
-		nftMetadata: {
-			tokenId: "5",
-			contractAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
-			mintedAt: new Date().toISOString(),
-		},
-		createdAt: new Date().toISOString(),
-	},
-	{
-		id: "6",
-		imageUrl: "https://picsum.photos/400/580?random=6",
-		thumbnailUrl: "https://picsum.photos/400/580?random=6",
-		title: "K-Drama Filming Location",
-		description: "Visited the iconic filming spot from my favorite drama",
-		uploader: {
-			address: "0x6789012345678901234567890123456789012345",
-			username: "DramaFan",
-		},
-		nftMetadata: {
-			tokenId: "6",
-			contractAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
-			mintedAt: new Date().toISOString(),
-		},
-		createdAt: new Date().toISOString(),
-	},
-];
+const DEFAULT_ADDRESS = "0x0000000000000000000000000000000000000000";
+const GALLERY_LIMIT = 60;
+
+async function fetchGalleryImages(): Promise<NFTImage[]> {
+	const db = await getDb();
+
+	const records = await db
+		.select({
+			image: images,
+			uploader: users,
+		})
+		.from(images)
+		.leftJoin(users, eq(images.userId, users.id))
+		.where(and(isNotNull(images.tokenId), eq(images.isApproved, true)))
+		.orderBy(desc(images.mintedAt))
+		.limit(GALLERY_LIMIT);
+
+	return records.map(({ image, uploader }) => {
+		const createdAt = image.createdAt ?? new Date();
+		const mintedAt = image.mintedAt ?? createdAt;
+
+		return {
+			id: image.id,
+			imageUrl: image.imageUrl,
+			thumbnailUrl: image.thumbnailUrl || image.imageUrl,
+			title: image.title ?? "",
+			description: image.description ?? "",
+			uploader: {
+				address: uploader?.walletAddress ?? DEFAULT_ADDRESS,
+				username: uploader?.username ?? undefined,
+				profileImage: uploader?.profileImage ?? undefined,
+			},
+			nftMetadata: {
+				tokenId: image.tokenId ?? "",
+				contractAddress: image.contractAddress ?? "",
+				transactionHash: image.transactionHash ?? "",
+				mintedAt: mintedAt.toISOString(),
+			},
+			createdAt: createdAt.toISOString(),
+		};
+	});
+}
+
+function EmptyGalleryState() {
+	return (
+		<div className="glass-card border border-dashed border-violet-500/40 p-10 text-center space-y-4">
+			<h3 className="text-2xl font-semibold text-white">
+				아직 업로드된 작품이 없습니다.
+			</h3>
+			<p className="text-violet-200">
+				첫 번째 Monad Testnet NFT 사진을 업로드해 커뮤니티의 역사를
+				만들어보세요.
+			</p>
+			<Link href="/upload" className="inline-flex primary-button">
+				첫 작품 업로드하기
+			</Link>
+		</div>
+	);
+}
 
 export default async function HomePage() {
+	const galleryImages = await fetchGalleryImages();
+
 	return (
 		<main>
 			<HeroSection />
@@ -122,7 +82,12 @@ export default async function HomePage() {
 							한국나드들이 공유한 소중한 순간들
 						</p>
 					</div>
-					<GalleryGrid images={mockImages} />
+
+					{galleryImages.length > 0 ? (
+						<GalleryGrid images={galleryImages} />
+					) : (
+						<EmptyGalleryState />
+					)}
 				</div>
 			</section>
 		</main>

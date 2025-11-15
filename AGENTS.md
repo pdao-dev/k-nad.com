@@ -1,612 +1,128 @@
 # K-nad.com Frontend Development Agents
 
 ## 프로젝트 개요
-**K-nad.com**은 한국에서 열리는 오프라인 이벤트 사진들을 NFT로 업로드하여 아카이빙하는 Web3 갤러리 플랫폼입니다.
-
-- **체인**: Monad Testnet
-- **백엔드**: Cloudflare Workers + D1 + R2
-- **프론트엔드**: Next.js 16 + React + TailwindCSS
-- Tooling: pnpm + biomejs
+K-nad.com은 한국 오프라인 이벤트에서 촬영된 사진을 Monad Testnet 상의 NFT로 보관·전시하는 Web3 갤러리입니다. 방문자는 미래지향적인 히어로 섹션과 스크롤 가능한 갤러리에서 이미지를 탐색하고, 자신만의 프로필과 컬렉션을 꾸미며, 업로드·민팅 과정을 통해 새로운 NFT를 손쉽게 추가할 수 있어야 합니다. 전체 여정은 Cloudflare Workers 기반 백엔드, D1/R2 저장소, Next.js 16 + React + TailwindCSS 프론트엔드로 완성됩니다.
 
 ---
 
-## 핵심 기능 구현
+## 핵심 경험 목표
 
-### 1. Home 화면 (Gallery View)
+### 홈 & 갤러리
+- 첫 화면에서 브랜드 타이포그래피와 그라데이션·글래스모피즘 톤으로 정체성을 강하게 전달
+- Masonry 스타일의 갤러리가 끊김 없이 이어지며, 스크롤에 따라 이미지가 자연스럽게 이어짐
+- 이미지 카드를 클릭하면 상세 모달이 떠서 고해상도 이미지, 업로더 정보, 설명, 공유 및 신고 액션이 한눈에 들어옴
+- 갤러리 상단에는 검색·필터·정렬 도구를 배치해 원하는 업로더나 작품을 빠르게 찾도록 지원
 
-#### 1.1 Hero Section
-```typescript
-// src/app/page.tsx
-// 구현 사항:
-// - 프로젝트 타이틀 "k-nad.com" 대형 디스플레이
-// - 이미지 업로드 버튼 (중앙 배치)
-// - 스크롤 인디케이터
-```
+### 지갑 연결 & 인증
+- MetaMask, Phantom(EVM 모드), WalletConnect 등 주요 지갑을 고르는 선택 UI를 구성하고 연결 상태를 명확히 피드백
+- Monad Testnet이 아닌 체인에 있을 경우 전환 안내를 제공해 사용자가 스스로 네트워크를 맞출 수 있게 함
+- 연결 이후에는 사용자 세션을 추적해 업로드, 프로필 편집, 신고 등 권한이 필요한 기능을 자연스럽게 사용할 수 있도록 유지
 
-**UI 컴포넌트**:
-- `src/components/hero/HeroSection.tsx`
-- `src/components/upload/UploadButton.tsx`
+### 프로필 경험
+- 사용자 지갑 주소를 중심으로 프로필 이미지·닉네임을 세팅하고 자신의 업로드 기록을 한 화면에 보여줌
+- 개인 갤러리는 메인 갤러리와 동일한 시각 언어를 유지하지만, 보유·업로드한 작품을 강조하는 레이아웃으로 구성
+- 프로필 이미지 업로드는 R2에 저장되며, 변경 사항이 실시간으로 반영되어야 함
 
-**디자인 요구사항**:
-- Typography: 큰 타이틀 (font-size: 4rem 이상)
-- 그라데이션 배경
-- Glassmorphism 효과의 업로드 버튼
+### 업로드 & 민팅
+- 홈 히어로 영역과 기타 CTA에서 `/upload` 페이지로 쉽게 진입
+- 드래그 앤 드롭 + 미리보기 + 설명 입력 과정을 순차적으로 안내하고, 업로드·민팅 진행률을 시각적으로 표시
+- R2 업로드 → NFT 메타데이터 생성 → Monad Testnet 민팅 → D1 기록 저장까지 한 플로우로 연결되며, 성공 후 갤러리에 신규 작품이 곧바로 등장
 
----
-
-#### 1.2 Gallery Grid
-```typescript
-// src/components/gallery/GalleryGrid.tsx
-// 구현 사항:
-// - Masonry 레이아웃 (Pinterest 스타일)
-// - Infinite scroll 구현
-// - 이미지 lazy loading
-// - Hover 효과 (업로더 정보 미리보기)
-```
-
-**데이터 구조**:
-```typescript
-interface NFTImage {
-  id: string;
-  imageUrl: string;
-  thumbnailUrl: string;
-  title: string;
-  description: string;
-  uploader: {
-    address: string;
-    username?: string;
-    profileImage?: string;
-  };
-  nftMetadata: {
-    tokenId: string;
-    contractAddress: string;
-    mintedAt: string;
-  };
-  createdAt: string;
-}
-```
-
-**필요한 라이브러리**:
-- `react-virtuoso` (무한 스크롤)
-- `react-masonry-css` (그리드 레이아웃)
+### 보조 기능
+- 신고 시스템은 남용 방지를 고려한 UX/로직을 갖추고, 신고된 이미지는 관리자 조치 전까지 상태가 추적 가능해야 함
+- 공유 기능은 트위터/디스코드/링크 복사와 같은 대표 채널을 지원하여 콘텐츠 확산을 장려
+- 검색·필터·정렬 도구는 업로더, 날짜, 인기 여부 등 기준으로 갤러리를 재배치할 수 있게 함
 
 ---
 
-#### 1.3 Image Detail Modal
-```typescript
-// src/components/gallery/ImageDetailModal.tsx
-// 구현 사항:
-// - 이미지 클릭 시 팝업
-// - 고해상도 이미지 표시
-// - 업로더 정보 (프로필 이미지 + 이름/주소)
-// - 이미지 설명
-// - 복사 버튼 (NFT 링크, 이미지 URL)
-// - 신고 버튼
-```
+## 플랫폼 구성요소
 
-**UI 구성**:
-```
-┌─────────────────────────────────┐
-│   [ Close Button ]              │
-│                                 │
-│   ┌───────────────────┐        │
-│   │                   │        │
-│   │   Image Display   │        │
-│   │                   │        │
-│   └───────────────────┘        │
-│                                 │
-│   👤 Uploader Name              │
-│   0x1234...5678                │
-│                                 │
-│   📝 Description here...        │
-│                                 │
-│   [Copy Link] [Report]         │
-└─────────────────────────────────┘
-```
-
-**컴포넌트**:
-- `src/components/gallery/ImageDetailModal.tsx`
-- `src/components/gallery/UploaderInfo.tsx`
-- `src/components/gallery/ActionButtons.tsx`
+- **체인**: Monad Testnet (EVM 호환)
+- **지갑 연동**: MetaMask, Phantom(EVM), WalletConnect 등 이더리움 지갑
+- **백엔드**: Cloudflare Workers, D1(Database), R2(Object Storage)
+- **프론트엔드**: Next.js 16, React, TailwindCSS
+- **툴링**: pnpm, biomejs, react-virtuoso(무한 스크롤), react-masonry-css(갤러리 레이아웃)
 
 ---
 
-### 2. Login 화면 (Wallet Connection)
+## 데이터 및 상태 개요
 
-#### 2.1 Wallet Provider Setup
-```typescript
-// src/providers/WalletProvider.tsx
-// 지원 지갑:
-// - Phantom
-// - MetaMask
-// - WalletConnect
-```
+### 사용자(User) 데이터
+- 기본 키, 지갑 주소, 닉네임, 프로필 이미지
+- 생성/수정 시각을 추적해 UI에 최신 상태 표시
 
-**주의**: Monad는 EVM 체인이므로 Ethereum 기반 지갑 연동 필요
-```typescript
-// MetaMask 우선 권장
-```
+### 이미지(Image/NFT) 데이터
+- 업로더 ID, 제목·설명, 원본/썸네일 이미지 URL, R2 키
+- NFT 정보(토큰 ID, 컨트랙트 주소, 민팅 시각, 트랜잭션 해시)
+- 신고 상태 및 신고 횟수
+- 생성/수정 시각
 
----
-
-#### 2.2 Login Page
-```typescript
-// src/app/(auth)/connect/page.tsx
-// 구현 사항:
-// - 지갑 선택 UI
-// - 연결 상태 관리
-// - 에러 핸들링
-// - 네트워크 확인 (Monad Testnet)
-```
-
-**UI 디자인**:
-- 지갑 아이콘 그리드
-- Connect 버튼
-- 네트워크 스위치 안내
-
-**컴포넌트**:
-- `src/modules/auth/components/WalletConnectButton.tsx`
-- `src/modules/auth/components/WalletSelector.tsx`
-- `src/modules/auth/components/NetworkSwitcher.tsx`
+### 기타 상태
+- 지갑 연결 상태 및 선택된 지갑 타입
+- 업로드/민팅 진행률, 네트워크 상태, 오류 메시지
+- 검색 키워드, 필터 조건, 정렬 기준
 
 ---
 
-### 3. User Profile 화면
-
-#### 3.1 Profile Setup
-```typescript
-// src/app/profile/page.tsx
-// 구현 사항:
-// - 프로필 이미지 업로드 (R2 저장)
-// - 사용자 이름 설정
-// - 지갑 주소 표시
-// - 업로드한 NFT 목록
-```
-
-**데이터 스키마**:
-```typescript
-// src/db/schemas/user.schema.ts
-import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
-
-export const users = pgTable('users', {
-  id: text('id').primaryKey(),
-  walletAddress: text('wallet_address').notNull().unique(),
-  username: text('username'),
-  profileImage: text('profile_image'),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
-```
-
-**컴포넌트**:
-- `src/modules/profile/components/ProfileImageUploader.tsx`
-- `src/modules/profile/components/ProfileForm.tsx`
-- `src/modules/profile/components/UserGallery.tsx`
-
----
-
-### 4. 이미지 업로드 기능
-
-#### 4.1 Upload Flow
-```
-1. 홈 화면 업로드 버튼 클릭
-   ↓
-2. /upload 페이지로 이동
-   ↓
-3. 이미지 선택 + 설명 입력
-   ↓
-4. R2에 이미지 업로드
-   ↓
-5. NFT 메타데이터 생성
-   ↓
-6. Monad Testnet에 NFT 민팅
-   ↓
-7. D1에 레코드 저장
-   ↓
-8. 갤러리로 리다이렉트
-```
-
----
-
-#### 4.2 Upload Page
-```typescript
-// src/app/upload/page.tsx
-// 구현 사항:
-// - 드래그 앤 드롭 이미지 업로드
-// - 이미지 프리뷰
-// - 설명 입력 (Textarea)
-// - 업로드 진행률 표시
-// - NFT 민팅 트랜잭션 확인
-```
-
-**UI 구성**:
-```
-┌─────────────────────────────────┐
-│   Upload Your Memory            │
-│                                 │
-│   ┌───────────────────┐        │
-│   │   Drop Image      │        │
-│   │   or Click        │        │
-│   └───────────────────┘        │
-│                                 │
-│   📝 Description                │
-│   ┌───────────────────┐        │
-│   │                   │        │
-│   │   [Textarea]      │        │
-│   │                   │        │
-│   └───────────────────┘        │
-│                                 │
-│   [Upload & Mint NFT]          │
-└─────────────────────────────────┘
-```
-
-**컴포넌트**:
-- `src/modules/upload/components/ImageUploader.tsx`
-- `src/modules/upload/components/UploadProgress.tsx`
-- `src/modules/upload/components/NFTMintingStatus.tsx`
-
----
-
-#### 4.3 R2 Image Upload
-```typescript
-// src/modules/upload/actions/upload-image.action.ts
-'use server';
-
-import { r2 } from '@/lib/r2';
-
-export async function uploadImageToR2(
-  file: File,
-  userId: string
-): Promise<{ url: string; key: string }> {
-  const key = `images/${userId}/${Date.now()}-${file.name}`;
-
-  // R2에 업로드
-  await r2.put(key, file, {
-    httpMetadata: {
-      contentType: file.type,
-    },
-  });
-
-  const url = `${process.env.CLOUDFLARE_R2_URL}/${key}`;
-  return { url, key };
-}
-```
-
----
-
-#### 4.4 NFT Minting on Monad
-```typescript
-// src/modules/nft/services/monad-nft.service.ts
-import { ethers } from 'ethers';
-
-export class MonadNFTService {
-  private provider: ethers.Provider;
-  private contract: ethers.Contract;
-
-  constructor() {
-    // Monad Testnet RPC
-    this.provider = new ethers.JsonRpcProvider(
-      process.env.NEXT_PUBLIC_MONAD_RPC_URL
-    );
-  }
-
-  async mintNFT(
-    imageUrl: string,
-    metadata: {
-      title: string;
-      description: string;
-      uploader: string;
-    }
-  ) {
-    // NFT 메타데이터 생성
-    const tokenMetadata = {
-      name: metadata.title,
-      description: metadata.description,
-      image: imageUrl,
-      attributes: [
-        { trait_type: 'Uploader', value: metadata.uploader },
-        { trait_type: 'Platform', value: 'k-nad.com' },
-      ],
-    };
-
-    // IPFS 또는 Arweave에 메타데이터 저장 (선택)
-    const metadataUri = await this.uploadMetadata(tokenMetadata);
-
-    // NFT 민팅
-    const tx = await this.contract.mint(metadata.uploader, metadataUri);
-    const receipt = await tx.wait();
-
-    return {
-      tokenId: receipt.events[0].args.tokenId,
-      transactionHash: receipt.transactionHash,
-    };
-  }
-}
-```
-
-**환경 변수**:
-```env
-# .dev.vars
-NEXT_PUBLIC_MONAD_RPC_URL=https://testnet-rpc.monad.xyz
-NEXT_PUBLIC_NFT_CONTRACT_ADDRESS=0x...
-```
-
----
-
-#### 4.5 Database Schema for Images
-```typescript
-// src/db/schemas/image.schema.ts
-import { pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core';
-
-export const images = pgTable('images', {
-  id: text('id').primaryKey(),
-  userId: text('user_id').notNull().references(() => users.id),
-  title: text('title'),
-  description: text('description'),
-  imageUrl: text('image_url').notNull(),
-  thumbnailUrl: text('thumbnail_url'),
-  r2Key: text('r2_key').notNull(),
-
-  // NFT 정보
-  tokenId: text('token_id'),
-  contractAddress: text('contract_address'),
-  transactionHash: text('transaction_hash'),
-  mintedAt: timestamp('minted_at'),
-
-  // 신고 관련
-  isReported: boolean('is_reported').default(false),
-  reportCount: integer('report_count').default(0),
-
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
-```
-
----
-
-## 추가 구현 에이전트
-
-### 5. Report 기능
-```typescript
-// src/modules/report/actions/report-image.action.ts
-'use server';
-
-export async function reportImage(
-  imageId: string,
-  reason: string,
-  reporterAddress: string
-) {
-  // 신고 내역 저장
-  // 관리자 알림 (선택)
-  // 일정 신고 수 도달 시 자동 숨김 처리
-}
-```
-
----
-
-### 6. 검색 및 필터링
-```typescript
-// src/components/gallery/SearchBar.tsx
-// 구현 사항:
-// - 업로더 주소로 검색
-// - 날짜 필터
-// - 정렬 옵션 (최신순, 인기순)
-```
-
----
-
-### 7. 공유 기능
-```typescript
-// src/components/gallery/ShareButton.tsx
-// 구현 사항:
-// - 트위터 공유
-// - 디스코드 공유
-// - 링크 복사
-```
-
----
-
-## 디자인 시스템
-
-### Color Palette
-```css
-/* src/app/globals.css */
-:root {
-  --primary: #8B5CF6; /* Purple */
-  --secondary: #EC4899; /* Pink */
-  --background: #0F0F0F; /* Dark */
-  --surface: #1A1A1A;
-  --text-primary: #FFFFFF;
-  --text-secondary: #A3A3A3;
-}
-```
-
-### Typography
-```css
-/* Headings */
-.hero-title {
-  font-size: 6rem;
-  font-weight: 900;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Body */
-.body-text {
-  font-size: 1rem;
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-```
-
-### Components
-```css
-/* Glassmorphism Card */
-.glass-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-}
-
-/* Button */
-.primary-button {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  padding: 1rem 2rem;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: transform 0.2s;
-}
-
-.primary-button:hover {
-  transform: translateY(-2px);
-}
-```
-
----
-
-## 프로젝트 구조
+## 디렉터리 & 컴포넌트 구조
 
 ```
 src/
 ├── app/
-│   ├── (auth)/
-│   │   └── connect/              # 지갑 연결 페이지
-│   │       └── page.tsx
-│   ├── upload/                   # 이미지 업로드 페이지
-│   │   └── page.tsx
-│   ├── profile/                  # 사용자 프로필
-│   │   └── page.tsx
-│   ├── gallery/[id]/            # 개별 이미지 상세
-│   │   └── page.tsx
-│   └── page.tsx                  # 홈 (갤러리)
+│   ├── (auth)/connect      # 지갑 연결 화면
+│   ├── upload              # 업로드 & 민팅 단계
+│   ├── profile             # 사용자 프로필
+│   ├── gallery/[id]        # 개별 이미지 상세
+│   └── page.tsx            # 홈 & 갤러리
 │
 ├── components/
-│   ├── hero/
-│   │   └── HeroSection.tsx
-│   ├── gallery/
-│   │   ├── GalleryGrid.tsx
-│   │   ├── ImageCard.tsx
-│   │   ├── ImageDetailModal.tsx
-│   │   └── SearchBar.tsx
-│   ├── upload/
-│   │   └── UploadButton.tsx
-│   └── ui/                       # Shadcn UI components
+│   ├── hero                # 히어로 섹션 UI
+│   ├── gallery             # 갤러리 카드, 모달, 검색 등
+│   ├── upload              # 업로드 CTA
+│   └── ui                  # 공통 UI 시스템 (shadcn 등)
 │
 ├── modules/
-│   ├── auth/
-│   │   ├── components/
-│   │   │   ├── WalletConnectButton.tsx
-│   │   │   ├── WalletSelector.tsx
-│   │   │   └── NetworkSwitcher.tsx
-│   │   └── utils/
-│   │       └── wallet-adapter.ts
-│   │
-│   ├── nft/
-│   │   ├── services/
-│   │   │   └── monad-nft.service.ts
-│   │   └── actions/
-│   │       └── mint-nft.action.ts
-│   │
-│   ├── upload/
-│   │   ├── components/
-│   │   │   ├── ImageUploader.tsx
-│   │   │   ├── UploadProgress.tsx
-│   │   │   └── NFTMintingStatus.tsx
-│   │   └── actions/
-│   │       ├── upload-image.action.ts
-│   │       └── create-nft-record.action.ts
-│   │
-│   ├── profile/
-│   │   ├── components/
-│   │   │   ├── ProfileForm.tsx
-│   │   │   ├── ProfileImageUploader.tsx
-│   │   │   └── UserGallery.tsx
-│   │   └── actions/
-│   │       └── update-profile.action.ts
-│   │
-│   └── report/
-│       └── actions/
-│           └── report-image.action.ts
+│   ├── auth                # 지갑 관련 UI/도구
+│   ├── nft                 # Monad NFT 서비스 & 액션
+│   ├── upload              # 이미지 업로드·진행 상태
+│   ├── profile             # 프로필 전용 컴포넌트/액션
+│   └── report              # 신고 로직
 │
-├── db/
-│   └── schemas/
-│       ├── user.schema.ts
-│       └── image.schema.ts
-│
-├── providers/
-│   └── WalletProvider.tsx
-│
-└── lib/
-    ├── r2.ts                     # R2 업로드 유틸
-    ├── monad.ts                  # Monad 체인 설정
-    └── utils.ts
+├── db/schemas              # users, images 테이블 정의
+├── providers               # WalletProvider 등 글로벌 상태
+└── lib                     # r2, monad, utils 등 유틸
 ```
 
 ---
 
-## 개발 순서
+## 개발 로드맵
 
-### Phase 1: 기본 구조
-1. [ ] 프로젝트 디렉토리 구조 생성
-2. [ ] 데이터베이스 스키마 작성 (users, images)
-3. [ ] 환경 변수 설정
-4. [ ] Monad Testnet 연결 설정
+### Phase 1 · 기본 구조
+- 디렉터리·모듈 배치와 환경 변수 정의
+- D1 스키마(users, images) 및 Monad RPC 설정
 
-### Phase 2: 인증
-1. [ ] WalletProvider 설정
-2. [ ] 지갑 연결 페이지 구현
-3. [ ] 네트워크 체크 기능
-4. [ ] 사용자 세션 관리
+### Phase 2 · 인증
+- WalletProvider 구축, 지갑 선택 UI, 네트워크 확인 및 세션 관리
 
-### Phase 3: 프로필
-1. [ ] 프로필 페이지 UI
-2. [ ] 프로필 이미지 업로드 (R2)
-3. [ ] 사용자 정보 저장 (D1)
+### Phase 3 · 프로필
+- 프로필 UI, 이미지 업로드(R2), 사용자 정보 저장/표시
 
-### Phase 4: 갤러리
-1. [ ] Home 페이지 Hero Section
-2. [ ] Gallery Grid (Masonry 레이아웃)
-3. [ ] Infinite Scroll
-4. [ ] Image Detail Modal
-5. [ ] 검색 및 필터 기능
+### Phase 4 · 갤러리
+- 히어로 섹션, Masonry 갤러리, 무한 스크롤, 상세 모달, 검색·필터
 
-### Phase 5: 업로드 & NFT
-1. [ ] 이미지 업로드 페이지 UI
-2. [ ] R2 업로드 로직
-3. [ ] NFT 스마트 컨트랙트 배포
-4. [ ] NFT 민팅 기능
-5. [ ] D1에 NFT 정보 저장
+### Phase 5 · 업로드 & NFT
+- 업로드 페이지 UX, R2 업로드, NFT 민팅 흐름, D1 기록 연동
 
-### Phase 6: 추가 기능
-1. [ ] 신고 기능
-2. [ ] 공유 기능
-3. [ ] 에러 핸들링
-4. [ ] 로딩 상태 UI
+### Phase 6 · 추가 기능
+- 신고/공유 기능, 에러 핸들링, 로딩 상태 UX
 
-### Phase 7: 최적화
-1. [ ] 이미지 최적화 (썸네일 생성)
-2. [ ] SEO 최적화
-3. [ ] 성능 최적화
-4. [ ] 모바일 반응형
+### Phase 7 · 최적화
+- 이미지 썸네일·로딩 최적화, SEO·성능 개선, 반응형 완성
 
 ---
 
-## 주의사항
-
-1. **Monad Testnet Faucet**: 테스트를 위한 토큰 필요
-2. **NFT 컨트랙트**: ERC-721 표준 사용 (Monad는 EVM 호환)
-3. **이미지 저장**: R2에 원본 + 썸네일 두 버전 저장 권장
-4. **신고 시스템**: 악용 방지를 위한 Rate Limiting 필요
-5. **지갑 연결**: Phantom은 EVM 모드로 사용, MetaMask 우선 권장
-
----
-
-## 다음 단계
-
-1. 데이터베이스 스키마 생성 및 마이그레이션
-2. NFT 스마트 컨트랙트 개발 및 배포
-3. 기본 UI 컴포넌트 개발
-4. 지갑 연결 기능 구현
-5. 갤러리 그리드 구현
+## 디자인 & 품질 기준
+- 다크 배경, 퍼플·핑크 그라데이션, 글래스모피즘 카드와 프리미엄한 타이포그래피로 Web3 갤러리 무드 연출
+- 반응형과 접근성을 고려해 모바일부터 데스크톱까지 자연스러운 상호작용 제공
+- 로딩·에러 상태를 명확히 안내해 사용자가 업로드·민팅 등 긴 프로세스에서도 신뢰를 유지
+- 모든 페이지·모듈이 일관된 인터랙션과 마이크로카피를 공유하여 하나의 고급 갤러리 경험으로 느껴지도록 유지

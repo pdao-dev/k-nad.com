@@ -1,25 +1,25 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(npm install:*)",
-      "Bash(npm run db:generate:*)",
-      "Bash(npm run db:migrate:local:*)",
-      "Bash(npm run dev:*)",
-      "Bash(timeout 5 sleep:*)",
-      "Bash(set SKIP_CLOUDFLARE_DEV=true)",
-      "Bash(timeout 8 sleep:*)",
-      "Bash(ping:*)",
-      "Bash(nul)",
-      "Bash(findstr:*)",
-      "Bash(dir /s /b nul 2)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(netstat:*)",
-      "Bash(taskkill:*)",
-      "Bash(powershell -Command \"Stop-Process -Id 15700 -Force\")",
-      "Bash(dir:*)"
-    ],
-    "deny": [],
-    "ask": []
-  }
+	"permissions": {
+		"allow": [
+			"Bash(npm install:*)",
+			"Bash(npm run db:generate:*)",
+			"Bash(npm run db:migrate:local:*)",
+			"Bash(npm run dev:*)",
+			"Bash(timeout 5 sleep:*)",
+			"Bash(set SKIP_CLOUDFLARE_DEV=true)",
+			"Bash(timeout 8 sleep:*)",
+			"Bash(ping:*)",
+			"Bash(nul)",
+			"Bash(findstr:*)",
+			"Bash(dir /s /b nul 2)",
+			"Bash(git add:*)",
+			"Bash(git commit:*)",
+			"Bash(netstat:*)",
+			"Bash(taskkill:*)",
+			"Bash(powershell -Command \"Stop-Process -Id 15700 -Force\")",
+			"Bash(dir:*)"
+		],
+		"deny": [],
+		"ask": []
+	}
 }

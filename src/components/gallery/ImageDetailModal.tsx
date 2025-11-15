@@ -113,7 +113,7 @@ export function ImageDetailModal({ image, onClose }: ImageDetailModalProps) {
 					)}
 
 					{/* Metadata */}
-					<div className="grid grid-cols-2 gap-4 p-4 bg-black/30 rounded-lg">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-black/30 rounded-lg">
 						<div>
 							<p className="text-gray-400 text-sm">Minted At</p>
 							<p className="text-white">
@@ -130,6 +130,25 @@ export function ImageDetailModal({ image, onClose }: ImageDetailModalProps) {
 								{image.nftMetadata.contractAddress.slice(-4)}
 							</p>
 						</div>
+						{image.nftMetadata.transactionHash && (
+							<div>
+								<p className="text-gray-400 text-sm">Tx Hash</p>
+								<button
+									type="button"
+									onClick={() => {
+										copy(image.nftMetadata.transactionHash);
+										toast.success("트랜잭션 해시가 복사되었습니다");
+									}}
+									className="text-white font-mono text-xs flex items-center gap-2 hover:text-violet-300 transition-colors"
+								>
+									<span>
+										{image.nftMetadata.transactionHash.slice(0, 8)}...
+										{image.nftMetadata.transactionHash.slice(-6)}
+									</span>
+									<Copy className="w-3 h-3" />
+								</button>
+							</div>
+						)}
 					</div>
 
 					{/* Action Buttons */}

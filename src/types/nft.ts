@@ -12,6 +12,7 @@ export interface NFTImage {
 	nftMetadata: {
 		tokenId: string;
 		contractAddress: string;
+		transactionHash: string;
 		mintedAt: string;
 	};
 	createdAt: string;

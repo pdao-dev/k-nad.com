@@ -11,12 +11,16 @@ export const images = sqliteTable("images", {
 	imageUrl: text("image_url").notNull(),
 	thumbnailUrl: text("thumbnail_url"),
 	r2Key: text("r2_key").notNull(),
+	metadataUrl: text("metadata_url"),
+	metadataKey: text("metadata_key"),
 
 	// NFT 정보
 	tokenId: text("token_id"),
 	contractAddress: text("contract_address"),
 	transactionHash: text("transaction_hash"),
 	mintedAt: integer("minted_at", { mode: "timestamp" }),
+	isApproved: integer("is_approved", { mode: "boolean" }).default(false),
+	approvedAt: integer("approved_at", { mode: "timestamp" }),
 
 	// 신고 관련
 	isReported: integer("is_reported", { mode: "boolean" }).default(false),

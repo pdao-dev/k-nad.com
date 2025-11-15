@@ -37,6 +37,12 @@ export function Navbar() {
 						>
 							Upload
 						</Link>
+						<Link
+							href="/admin"
+							className="text-gray-300 hover:text-violet-400 transition-colors font-medium"
+						>
+							Admin
+						</Link>
 						<WalletButton />
 					</div>
 				</div>
