@@ -569,10 +569,10 @@ pnpm run cf:secret BETTER_AUTH_SECRET
 **Database Monitoring:**
 ```bash
 # Monitor database performance
-wrangler d1 insights next-cf-app
+wrangler d1 insights k-nad
 
 # View database metrics in Cloudflare Dashboard
-# Navigate to Workers & Pages → D1 → next-cf-app → Metrics
+# Navigate to Workers & Pages → D1 → k-nad → Metrics
 ```
 
 ## 🚀 Deployment

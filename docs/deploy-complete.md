@@ -11,7 +11,7 @@ This is a comprehensive CI/CD pipeline for deploying a Next.js app to Cloudflare
 
 ### 2. **Deploy-Preview** (for Pull Requests):
 - Creates a temporary preview deployment when you open a PR
-- Deploys to a preview environment (e.g., `https://next-cf-app-preview.your-subdomain.workers.dev`)
+- Deploys to a preview environment (e.g., `https://k-nad-preview.your-subdomain.workers.dev`)
 - Automatically comments on the PR with the preview URL
 - Lets you test changes before merging
 
@@ -109,7 +109,7 @@ jobs:
       - name: Check for pending migrations
         run: |
           echo "Checking migration status..."
-          pnpm exec wrangler d1 migrations list next-cf-app --env preview || echo "No migration table found, first deployment"
+          pnpm exec wrangler d1 migrations list k-nad --env preview || echo "No migration table found, first deployment"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
@@ -117,9 +117,9 @@ jobs:
         run: |
           echo "Applying database migrations to preview environment..."
           pnpm run db:migrate:local
-          pnpm exec wrangler d1 migrations apply next-cf-app --env preview || {
+          pnpm exec wrangler d1 migrations apply k-nad --env preview || {
             echo "Migration failed, checking if tables already exist..."
-            pnpm exec wrangler d1 execute next-cf-app --env preview --command="SELECT name FROM sqlite_master WHERE type='table';" || echo "Database not initialized"
+            pnpm exec wrangler d1 execute k-nad --env preview --command="SELECT name FROM sqlite_master WHERE type='table';" || echo "Database not initialized"
             exit 0
           }
         env:
@@ -140,7 +140,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '🚀 Preview deployed! Check it out at: https://next-cf-app-preview.your-subdomain.workers.dev'
+              body: '🚀 Preview deployed! Check it out at: https://k-nad-preview.your-subdomain.workers.dev'
             })
 
   # Deploy to staging (develop branch)
@@ -178,7 +178,7 @@ jobs:
         run: |
           echo "Creating backup of staging database..."
           timestamp=$(date +%Y%m%d_%H%M%S)
-          pnpm exec wrangler d1 export next-cf-app --env staging --output "backup_staging_${timestamp}.sql" || echo "Backup failed, continuing..."
+          pnpm exec wrangler d1 export k-nad --env staging --output "backup_staging_${timestamp}.sql" || echo "Backup failed, continuing..."
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         continue-on-error: true
@@ -186,9 +186,9 @@ jobs:
       - name: Run database migrations (Staging)
         run: |
           echo "Applying database migrations to staging..."
-          pnpm exec wrangler d1 migrations apply next-cf-app --env staging || {
+          pnpm exec wrangler d1 migrations apply k-nad --env staging || {
             echo "Migration may have failed, checking database state..."
-            pnpm exec wrangler d1 execute next-cf-app --env staging --command="SELECT COUNT(*) as migration_count FROM d1_migrations;" || echo "Migration tracking not available"
+            pnpm exec wrangler d1 execute k-nad --env staging --command="SELECT COUNT(*) as migration_count FROM d1_migrations;" || echo "Migration tracking not available"
             exit 1
           }
         env:
@@ -204,7 +204,7 @@ jobs:
       - name: Verify staging deployment
         run: |
           echo "Verifying staging deployment..."
-          curl -f https://next-cf-app-staging.your-subdomain.workers.dev/api/todos || exit 1
+          curl -f https://k-nad-staging.your-subdomain.workers.dev/api/todos || exit 1
         continue-on-error: true
 
   # Deploy to production (main branch)
@@ -242,7 +242,7 @@ jobs:
         run: |
           echo "Running pre-deployment checks..."
           # Check if Cloudflare services are accessible
-          pnpm exec wrangler d1 execute next-cf-app --command="SELECT 1;" || {
+          pnpm exec wrangler d1 execute k-nad --command="SELECT 1;" || {
             echo "Cannot connect to production database!"
             exit 1
           }
@@ -253,7 +253,7 @@ jobs:
         run: |
           echo "Creating backup of production database..."
           timestamp=$(date +%Y%m%d_%H%M%S)
-          pnpm exec wrangler d1 export next-cf-app --output "backup_prod_${timestamp}.sql"
+          pnpm exec wrangler d1 export k-nad --output "backup_prod_${timestamp}.sql"
           echo "Backup created: backup_prod_${timestamp}.sql"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -265,16 +265,16 @@ jobs:
           
           # List current migrations in database
           echo "Current applied migrations:"
-          pnpm exec wrangler d1 execute next-cf-app --command="SELECT name FROM d1_migrations ORDER BY applied_at;" || echo "No migrations table found"
+          pnpm exec wrangler d1 execute k-nad --command="SELECT name FROM d1_migrations ORDER BY applied_at;" || echo "No migrations table found"
           
           # Check if there are pending migrations
-          if pnpm exec wrangler d1 migrations list next-cf-app | grep -q "No migrations"; then
+          if pnpm exec wrangler d1 migrations list k-nad | grep -q "No migrations"; then
             echo "No pending migrations found"
             echo "has_migrations=false" >> $GITHUB_OUTPUT
           else
             echo "Pending migrations found"
             echo "has_migrations=true" >> $GITHUB_OUTPUT
-            pnpm exec wrangler d1 migrations list next-cf-app
+            pnpm exec wrangler d1 migrations list k-nad
           fi
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -286,11 +286,11 @@ jobs:
           echo "⚠️ Database may be temporarily unavailable during migration"
           
           # Apply migrations with error handling
-          if ! pnpm exec wrangler d1 migrations apply next-cf-app; then
+          if ! pnpm exec wrangler d1 migrations apply k-nad; then
             echo "❌ Migration failed! Checking database state..."
             
             # Check what went wrong
-            pnpm exec wrangler d1 execute next-cf-app --command="SELECT name, applied_at FROM d1_migrations ORDER BY applied_at DESC LIMIT 5;" || echo "Cannot read migration status"
+            pnpm exec wrangler d1 execute k-nad --command="SELECT name, applied_at FROM d1_migrations ORDER BY applied_at DESC LIMIT 5;" || echo "Cannot read migration status"
             
             # Exit with error to stop deployment
             exit 1
@@ -300,7 +300,7 @@ jobs:
           
           # Verify migration status
           echo "Final migration status:"
-          pnpm exec wrangler d1 execute next-cf-app --command="SELECT COUNT(*) as total_migrations FROM d1_migrations;"
+          pnpm exec wrangler d1 execute k-nad --command="SELECT COUNT(*) as total_migrations FROM d1_migrations;"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
@@ -319,7 +319,7 @@ jobs:
           sleep 10
           
           # Check if the app is responding
-          if curl -f https://next-cf-app.your-domain.workers.dev/api/todos; then
+          if curl -f https://k-nad.your-domain.workers.dev/api/todos; then
             echo "✅ Production deployment verified successfully"
           else
             echo "❌ Production deployment verification failed"
@@ -327,7 +327,7 @@ jobs:
           fi
           
           # Check database connectivity
-          pnpm exec wrangler d1 execute next-cf-app --command="SELECT COUNT(*) FROM todos;" || {
+          pnpm exec wrangler d1 execute k-nad --command="SELECT COUNT(*) FROM todos;" || {
             echo "⚠️ Database connectivity issue detected"
             exit 1
           }
@@ -340,7 +340,7 @@ jobs:
         if: success()
         run: |
           echo "🎉 Production deployment completed successfully!"
-          echo "App URL: https://next-cf-app.your-domain.workers.dev"
+          echo "App URL: https://k-nad.your-domain.workers.dev"
           
       - name: Rollback on failure
         if: failure()

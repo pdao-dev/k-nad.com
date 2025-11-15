@@ -1,5 +1,5 @@
-import { HeroSection } from "@/components/hero/HeroSection";
 import { GalleryGrid } from "@/components/gallery/GalleryGrid";
+import { HeroSection } from "@/components/hero/HeroSection";
 
 // Temporary mock data - will be replaced with real data from D1
 const mockImages = [

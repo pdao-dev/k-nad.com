@@ -6,6 +6,7 @@
 - **체인**: Monad Testnet
 - **백엔드**: Cloudflare Workers + D1 + R2
 - **프론트엔드**: Next.js 16 + React + TailwindCSS
+- Tooling: pnpm + biomejs
 
 ---
 

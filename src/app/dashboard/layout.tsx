@@ -1,9 +1,9 @@
 import DashboardLayout from "@/modules/dashboard/dashboard.layout";
 
 export default async function Layout({
-    children,
+	children,
 }: {
-    children: React.ReactNode;
+	children: React.ReactNode;
 }) {
-    return <DashboardLayout>{children}</DashboardLayout>;
+	return <DashboardLayout>{children}</DashboardLayout>;
 }

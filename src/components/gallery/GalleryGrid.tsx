@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Masonry from "react-masonry-css";
+import type { NFTImage } from "@/types/nft";
 import { ImageCard } from "./ImageCard";
 import { ImageDetailModal } from "./ImageDetailModal";
-import type { NFTImage } from "@/types/nft";
 
 interface GalleryGridProps {
 	images: NFTImage[];

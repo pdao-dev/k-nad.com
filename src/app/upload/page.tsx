@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ImageUploader } from "@/modules/upload/components/ImageUploader";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import toast from "react-hot-toast";
+import { ImageUploader } from "@/modules/upload/components/ImageUploader";
 
 export default function UploadPage() {
 	const router = useRouter();

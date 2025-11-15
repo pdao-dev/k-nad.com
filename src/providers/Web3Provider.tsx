@@ -1,7 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { BrowserProvider, type Eip1193Provider } from "ethers";
+import {
+	createContext,
+	type ReactNode,
+	useContext,
+	useEffect,
+	useState,
+} from "react";
 import toast from "react-hot-toast";
 import { MONAD_TESTNET } from "@/lib/monad";
 
@@ -146,7 +152,10 @@ declare global {
 	interface Window {
 		ethereum?: {
 			isMetaMask?: boolean;
-			request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+			request: (args: {
+				method: string;
+				params?: unknown[];
+			}) => Promise<unknown>;
 			on: (event: string, callback: (...args: unknown[]) => void) => void;
 			removeListener: (
 				event: string,

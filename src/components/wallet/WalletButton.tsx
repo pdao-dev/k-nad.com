@@ -1,7 +1,7 @@
 "use client";
 
+import { LogOut, Wallet } from "lucide-react";
 import { useWeb3 } from "@/providers/Web3Provider";
-import { Wallet, LogOut } from "lucide-react";
 
 export function WalletButton() {
 	const { account, isConnected, connect, disconnect } = useWeb3();

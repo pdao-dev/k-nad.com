@@ -1,6 +1,6 @@
 // Monad Testnet Configuration
 export const MONAD_TESTNET = {
-	chainId: 41454,
+	chainId: 10143,
 	chainName: "Monad Testnet",
 	rpcUrl: process.env.NEXT_PUBLIC_MONAD_RPC_URL || "https://testnet.monad.xyz",
 	blockExplorer: "https://explorer.testnet.monad.xyz",

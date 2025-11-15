@@ -1,6 +1,6 @@
 "use client";
 
-import { Upload, Sparkles } from "lucide-react";
+import { Sparkles, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function HeroSection() {
@@ -19,7 +19,10 @@ export function HeroSection() {
 			<div className="absolute inset-0 grid-pattern pointer-events-none" />
 
 			{/* Animated Orbs - Monad + Korean Colors */}
-			<div className="absolute inset-0 pointer-events-none" style={{ overflow: 'hidden' }}>
+			<div
+				className="absolute inset-0 pointer-events-none"
+				style={{ overflow: "hidden" }}
+			>
 				{/* Monad Purple Orbs */}
 				<div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-600 rounded-full mix-blend-screen filter blur-3xl opacity-25 float-orb" />
 				<div className="absolute top-1/3 right-1/4 w-96 h-96 bg-violet-500 rounded-full mix-blend-screen filter blur-3xl opacity-30 float-orb animation-delay-2000" />
@@ -41,9 +44,7 @@ export function HeroSection() {
 				</div>
 
 				{/* Title */}
-				<h1 className="hero-title mb-4 animate-fade-in">
-					K-NADS.COM
-				</h1>
+				<h1 className="hero-title mb-4 animate-fade-in">K-NADS.COM</h1>
 
 				{/* Subtitle */}
 				<p className="hero-subtitle mb-6 max-w-3xl">
@@ -98,9 +99,7 @@ export function HeroSection() {
 
 			{/* Scroll Indicator */}
 			<div className="absolute bottom-10 z-10 flex flex-col items-center gap-2 animate-bounce">
-				<p className="text-sm text-violet-300 font-medium">
-					Explore Gallery
-				</p>
+				<p className="text-sm text-violet-300 font-medium">Explore Gallery</p>
 				<svg
 					className="w-6 h-6 text-violet-400"
 					fill="none"

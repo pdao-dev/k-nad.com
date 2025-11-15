@@ -1,17 +1,17 @@
 "use client";
 
-import { X, Copy, Flag } from "lucide-react";
+import copy from "copy-to-clipboard";
+import { Copy, Flag, X } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import copy from "copy-to-clipboard";
 import toast from "react-hot-toast";
-import type { NFTImage } from "@/types/nft";
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import type { NFTImage } from "@/types/nft";
 
 interface ImageDetailModalProps {
 	image: NFTImage;
@@ -125,7 +125,8 @@ export function ImageDetailModal({ image, onClose }: ImageDetailModalProps) {
 						<div>
 							<p className="text-gray-400 text-sm">Contract</p>
 							<p className="text-white font-mono text-sm">
-								{image.nftMetadata.contractAddress.slice(0, 6)}...
+								{image.nftMetadata.contractAddress.slice(0, 6)}
+								...
 								{image.nftMetadata.contractAddress.slice(-4)}
 							</p>
 						</div>
