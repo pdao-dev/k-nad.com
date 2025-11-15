@@ -12,7 +12,12 @@
       "Bash(nul)",
       "Bash(findstr:*)",
       "Bash(dir /s /b nul 2)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(powershell -Command \"Stop-Process -Id 15700 -Force\")",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
