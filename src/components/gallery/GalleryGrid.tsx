@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Masonry from "react-masonry-css";
+// import Masonry from "react-masonry-css";
 import type { NFTImage } from "@/types/nft";
 import { ImageCard } from "./ImageCard";
 import { ImageDetailModal } from "./ImageDetailModal";
@@ -23,11 +23,8 @@ export function GalleryGrid({ images }: GalleryGridProps) {
 	return (
 		<>
 			<div className="w-full px-4 py-12">
-				<Masonry
-					breakpointCols={breakpointColumns}
-					className="flex w-full gap-4"
-					columnClassName="bg-clip-padding"
-				>
+				{/* Temporarily using simple grid instead of Masonry */}
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 					{images.map((image) => (
 						<ImageCard
 							key={image.id}
@@ -35,7 +32,7 @@ export function GalleryGrid({ images }: GalleryGridProps) {
 							onClick={() => setSelectedImage(image)}
 						/>
 					))}
-				</Masonry>
+				</div>
 			</div>
 
 			{selectedImage && (

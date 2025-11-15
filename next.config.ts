@@ -14,6 +14,14 @@ const nextConfig = {
 			},
 		],
 	},
+	// Disable source maps in production
+	productionBrowserSourceMaps: false,
+	// Minimal configuration to reduce bundle size
+	experimental: {
+		optimizePackageImports: ["lucide-react"],
+	},
+	// Turbopack configuration (empty to allow webpack)
+	turbopack: {},
 };
 
 if (

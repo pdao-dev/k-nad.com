@@ -1,6 +1,8 @@
 "use client";
 
-import { BrowserProvider, type Eip1193Provider } from "ethers";
+import { createConfig, http, WagmiProvider } from "wagmi";
+import { monadTestnet } from "wagmi/chains";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
 	createContext,
 	type ReactNode,
@@ -11,10 +13,20 @@ import {
 import toast from "react-hot-toast";
 import { MONAD_TESTNET } from "@/lib/monad";
 
+// Configure wagmi
+const config = createConfig({
+	chains: [monadTestnet],
+	transports: {
+		[monadTestnet.id]: http(),
+	},
+});
+
+// Create query client
+const queryClient = new QueryClient();
+
 interface Web3ContextType {
 	account: string | null;
 	isConnected: boolean;
-	provider: BrowserProvider | null;
 	connect: () => Promise<void>;
 	disconnect: () => void;
 	switchToMonad: () => Promise<void>;
@@ -24,7 +36,6 @@ const Web3Context = createContext<Web3ContextType | undefined>(undefined);
 
 export function Web3Provider({ children }: { children: ReactNode }) {
 	const [account, setAccount] = useState<string | null>(null);
-	const [provider, setProvider] = useState<BrowserProvider | null>(null);
 
 	useEffect(() => {
 		checkConnection();
@@ -33,13 +44,12 @@ export function Web3Provider({ children }: { children: ReactNode }) {
 	const checkConnection = async () => {
 		if (typeof window !== "undefined" && window.ethereum) {
 			try {
-				const provider = new BrowserProvider(
-					window.ethereum as unknown as Eip1193Provider,
-				);
-				const accounts = await provider.listAccounts();
+				// Check if already connected
+				const accounts = (await window.ethereum.request({
+					method: "eth_accounts",
+				})) as string[];
 				if (accounts.length > 0) {
-					setAccount(accounts[0].address);
-					setProvider(provider);
+					setAccount(accounts[0]);
 				}
 			} catch (error) {
 				console.error("Failed to check connection:", error);
@@ -55,14 +65,12 @@ export function Web3Provider({ children }: { children: ReactNode }) {
 		}
 
 		try {
-			const provider = new BrowserProvider(
-				window.ethereum as unknown as Eip1193Provider,
-			);
-			const accounts = await provider.send("eth_requestAccounts", []);
+			const accounts = (await window.ethereum.request({
+				method: "eth_requestAccounts",
+			})) as string[];
 
 			if (accounts.length > 0) {
 				setAccount(accounts[0]);
-				setProvider(provider);
 				toast.success("지갑이 연결되었습니다");
 
 				// Check if on correct network
@@ -80,7 +88,6 @@ export function Web3Provider({ children }: { children: ReactNode }) {
 
 	const disconnect = () => {
 		setAccount(null);
-		setProvider(null);
 		toast.success("지갑 연결이 해제되었습니다");
 	};
 
@@ -124,18 +131,21 @@ export function Web3Provider({ children }: { children: ReactNode }) {
 	};
 
 	return (
-		<Web3Context.Provider
-			value={{
-				account,
-				isConnected: !!account,
-				provider,
-				connect,
-				disconnect,
-				switchToMonad,
-			}}
-		>
-			{children}
-		</Web3Context.Provider>
+		<WagmiProvider config={config}>
+			<QueryClientProvider client={queryClient}>
+				<Web3Context.Provider
+					value={{
+						account,
+						isConnected: !!account,
+						connect,
+						disconnect,
+						switchToMonad,
+					}}
+				>
+					{children}
+				</Web3Context.Provider>
+			</QueryClientProvider>
+		</WagmiProvider>
 	);
 }
 
