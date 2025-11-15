@@ -25,6 +25,19 @@ interface S3Config {
 const CACHE_CONTROL = "public, max-age=31536000";
 const AWS_REGION = "auto";
 const AWS_SERVICE = "s3";
+const R2_LOG_PREFIX = "[R2]";
+
+function logR2(message: string, context?: Record<string, unknown>) {
+	try {
+		console.log(
+			R2_LOG_PREFIX,
+			message,
+			context ? JSON.stringify(context) : "",
+		);
+	} catch {
+		// Ignore JSON serialization issues
+	}
+}
 
 function assertServerRuntime() {
 	if (typeof window !== "undefined") {
@@ -108,6 +121,13 @@ export async function uploadToR2(
 		const buffer = await file.arrayBuffer();
 		const contentType = file.type || "application/octet-stream";
 
+		logR2("Starting binary upload", {
+			folder,
+			key,
+			size: file.size,
+			contentType,
+		});
+
 		await putObject(env, {
 			key,
 			body: buffer,
@@ -127,6 +147,11 @@ export async function uploadToR2(
 		};
 	} catch (error) {
 		console.error("R2 upload error:", error);
+		logR2("Binary upload failed", {
+			fileName: file.name,
+			folder,
+			error: error instanceof Error ? error.message : String(error),
+		});
 		return {
 			success: false,
 			error: error instanceof Error ? error.message : "Upload failed",
@@ -146,6 +171,7 @@ export async function uploadJsonToR2(
 		const key = options.filename
 			? sanitizeKey(options.filename)
 			: createObjectKey(folder, "json");
+		logR2("Starting JSON upload", { folder, key });
 		await putObject(env, {
 			key,
 			body: new TextEncoder().encode(JSON.stringify(payload, null, 2)),
@@ -160,6 +186,11 @@ export async function uploadJsonToR2(
 		};
 	} catch (error) {
 		console.error("R2 JSON upload error:", error);
+		logR2("JSON upload failed", {
+			folder: options.folder ?? "metadata",
+			filename: options.filename,
+			error: error instanceof Error ? error.message : String(error),
+		});
 		return {
 			success: false,
 			error: error instanceof Error ? error.message : "Metadata upload failed",
@@ -172,9 +203,15 @@ export async function getFromR2(key: string): Promise<R2Object | null> {
 		assertServerRuntime();
 		const env = await getRuntimeEnv();
 		assertBucketBinding(env);
-		return env.k_nad_prod.get(key);
+		logR2("Fetching object", { key });
+		const result = await env.k_nad_prod.get(key);
+		if (!result) {
+			logR2("Object not found", { key });
+		}
+		return result;
 	} catch (error) {
 		console.error("Error getting data from R2", error);
+		logR2("Fetch failed", { key, error: error instanceof Error ? error.message : String(error) });
 		return null;
 	}
 }
@@ -186,9 +223,11 @@ export async function deleteFromR2(key: string): Promise<void> {
 		assertServerRuntime();
 		const env = await getRuntimeEnv();
 		const sanitizedKey = sanitizeKey(key);
+		logR2("Deleting object", { key: sanitizedKey, hasBinding: hasR2Binding(env) });
 
 		if (hasR2Binding(env)) {
 			await env.k_nad_prod.delete(sanitizedKey);
+			logR2("Deleted via binding", { key: sanitizedKey });
 			return;
 		}
 
@@ -200,14 +239,24 @@ export async function deleteFromR2(key: string): Promise<void> {
 			},
 			config,
 		);
+		logR2("Deleted via S3", { key: sanitizedKey });
 	} catch (error) {
 		console.error(`Failed to delete R2 object ${key}`, error);
+		logR2("Delete failed", {
+			key,
+			error: error instanceof Error ? error.message : String(error),
+		});
 	}
 }
 
 async function putObject(env: RuntimeEnv, request: PutObjectRequest) {
 	const sanitizedKey = sanitizeKey(request.key);
 	const bodyBuffer = toArrayBuffer(request.body);
+	logR2("Preparing putObject", {
+		key: sanitizedKey,
+		hasBinding: hasR2Binding(env),
+		size: bodyBuffer.byteLength,
+	});
 
 	if (hasR2Binding(env)) {
 		const options: R2PutOptions = {
@@ -222,6 +271,7 @@ async function putObject(env: RuntimeEnv, request: PutObjectRequest) {
 		}
 
 		await env.k_nad_prod.put(sanitizedKey, bodyBuffer, options);
+		logR2("Uploaded via binding", { key: sanitizedKey });
 		return;
 	}
 
@@ -234,6 +284,7 @@ async function putObject(env: RuntimeEnv, request: PutObjectRequest) {
 		},
 		config,
 	);
+	logR2("Uploaded via S3 API", { key: sanitizedKey });
 }
 
 async function putObjectViaS3(request: PutObjectRequest, config: S3Config) {
@@ -272,12 +323,17 @@ async function sendSignedS3Request(
 	config: S3Config,
 ) {
 	const method = options.method.toUpperCase();
-		const url = new URL(`${config.baseUrl}/${sanitizeKey(options.key)}`);
-		const bodyBuffer = options.body
-			? toArrayBuffer(options.body)
-			: new ArrayBuffer(0);
-		const payloadHash = await sha256Hex(bodyBuffer);
-		const { amzDate, dateStamp } = getAmzDateParts(new Date());
+	const url = new URL(`${config.baseUrl}/${sanitizeKey(options.key)}`);
+	const bodyBuffer = options.body
+		? toArrayBuffer(options.body)
+		: new ArrayBuffer(0);
+	const payloadHash = await sha256Hex(bodyBuffer);
+	const { amzDate, dateStamp } = getAmzDateParts(new Date());
+	logR2("Signing S3 request", {
+		method,
+		key: options.key,
+		baseUrl: config.baseUrl,
+	});
 
 	const headersForSigning: Record<string, string> = {
 		host: url.host,
@@ -345,12 +401,24 @@ async function sendSignedS3Request(
 
 	if (!response.ok) {
 		const errorText = await response.text().catch(() => "");
+		logR2("S3 request failed", {
+			method,
+			key: options.key,
+			status: response.status,
+			errorText,
+		});
 		throw new Error(
 			`R2 S3 ${method} failed (${response.status}): ${
 				errorText || response.statusText
 			}`,
 		);
 	}
+
+	logR2("S3 request succeeded", {
+		method,
+		key: options.key,
+		status: response.status,
+	});
 }
 
 function buildMetadataHeaders(metadata?: Record<string, string>) {
