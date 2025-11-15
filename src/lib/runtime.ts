@@ -10,7 +10,7 @@ export type RuntimeEnv =
  */
 export async function getRuntimeEnv(): Promise<RuntimeEnv> {
 	try {
-		const context = await getCloudflareContext();
+		const context = getCloudflareContext();
 		if (context?.env) {
 			return context.env as RuntimeEnv;
 		}
@@ -24,5 +24,7 @@ export async function getRuntimeEnv(): Promise<RuntimeEnv> {
 		}
 	}
 
-	return process.env as RuntimeEnv;
+	// Ensure we always return a valid object
+	const env = process.env as RuntimeEnv;
+	return env || {};
 }
