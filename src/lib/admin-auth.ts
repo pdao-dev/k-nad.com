@@ -1,21 +1,26 @@
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getRuntimeEnv } from "@/lib/runtime";
 
 const SESSION_COOKIE = "k_nad_admin_session";
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 6; // 6 hours
+const encoder = new TextEncoder();
 
-function toBuffer(value: string) {
-	return Buffer.from(value, "utf-8");
+function toUint8(value: string) {
+	return encoder.encode(value);
 }
 
-function safeCompare(a: string, b: string) {
-	const aBuf = toBuffer(a);
-	const bBuf = toBuffer(b);
-	if (aBuf.length !== bBuf.length) {
+function timingSafeEquals(a: string, b: string) {
+	const aBytes = toUint8(a);
+	const bBytes = toUint8(b);
+	if (aBytes.length !== bBytes.length) {
 		return false;
 	}
-	return timingSafeEqual(aBuf, bBuf);
+
+	let result = 0;
+	for (let i = 0; i < aBytes.length; i += 1) {
+		result |= aBytes[i] ^ bBytes[i];
+	}
+	return result === 0;
 }
 
 async function getRequiredSecret(key: keyof CloudflareEnv | string) {
@@ -25,6 +30,55 @@ async function getRequiredSecret(key: keyof CloudflareEnv | string) {
 		throw new Error(`${key} is not configured`);
 	}
 	return value;
+}
+
+async function signPayload(payload: string) {
+	const secret = await getRequiredSecret("ADMIN_SESSION_SECRET");
+	const cryptoKey = await crypto.subtle.importKey(
+		"raw",
+		toUint8(secret),
+		{ name: "HMAC", hash: "SHA-256" },
+		false,
+		["sign"],
+	);
+
+	const signature = await crypto.subtle.sign(
+		"HMAC",
+		cryptoKey,
+		toUint8(payload),
+	);
+
+	return Array.from(new Uint8Array(signature))
+		.map((byte) => byte.toString(16).padStart(2, "0"))
+		.join("");
+}
+
+function randomHex(bytes = 16) {
+	const array = new Uint8Array(bytes);
+	crypto.getRandomValues(array);
+	return Array.from(array)
+		.map((byte) => byte.toString(16).padStart(2, "0"))
+		.join("");
+}
+
+async function createSessionToken() {
+	const payload = `${Date.now()}|${randomHex()}`;
+	const signature = await signPayload(payload);
+	return `${payload}.${signature}`;
+}
+
+async function verifySessionToken(token: string) {
+	const [payload, signature] = token.split(".");
+	if (!payload || !signature) return false;
+
+	const expectedSignature = await signPayload(payload);
+	if (!timingSafeEquals(signature, expectedSignature)) return false;
+
+	const [issuedAtRaw] = payload.split("|");
+	const issuedAt = Number.parseInt(issuedAtRaw, 10);
+	if (Number.isNaN(issuedAt)) return false;
+
+	return Date.now() - issuedAt <= SESSION_DURATION_MS;
 }
 
 export async function validateAdminCredentials(
@@ -37,40 +91,9 @@ export async function validateAdminCredentials(
 	]);
 
 	return (
-		safeCompare(username, storedUsername) &&
-		safeCompare(password, storedPassword)
+		timingSafeEquals(username, storedUsername) &&
+		timingSafeEquals(password, storedPassword)
 	);
-}
-
-async function signPayload(payload: string) {
-	const secret = await getRequiredSecret("ADMIN_SESSION_SECRET");
-	return createHmac("sha256", secret).update(payload).digest("hex");
-}
-
-async function createSessionToken() {
-	const payload = `${Date.now()}|${randomBytes(16).toString("hex")}`;
-	const signature = await signPayload(payload);
-	return `${payload}.${signature}`;
-}
-
-async function verifySessionToken(token: string) {
-	const [payload, signature] = token.split(".");
-	if (!payload || !signature) {
-		return false;
-	}
-
-	const expectedSignature = await signPayload(payload);
-	if (!safeCompare(signature, expectedSignature)) {
-		return false;
-	}
-
-	const [issuedAt] = payload.split("|");
-	const issuedTime = Number.parseInt(issuedAt, 10);
-	if (Number.isNaN(issuedTime)) {
-		return false;
-	}
-
-	return Date.now() - issuedTime <= SESSION_DURATION_MS;
 }
 
 export async function isAdminRequest(request: NextRequest) {
@@ -85,8 +108,8 @@ export async function createAdminSession(response: NextResponse) {
 		name: SESSION_COOKIE,
 		value: token,
 		httpOnly: true,
-		sameSite: "lax",
 		secure: true,
+		sameSite: "lax",
 		path: "/",
 		maxAge: SESSION_DURATION_MS / 1000,
 	});
@@ -97,8 +120,8 @@ export function clearAdminSession(response: NextResponse) {
 		name: SESSION_COOKIE,
 		value: "",
 		httpOnly: true,
-		sameSite: "lax",
 		secure: true,
+		sameSite: "lax",
 		path: "/",
 		maxAge: 0,
 	});
