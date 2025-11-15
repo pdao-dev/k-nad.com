@@ -36,6 +36,7 @@
   },
   "vars": {
     "NEXT_PUBLIC_NFT_CONTRACT_ADDRESS": "0xc4a6D5FD224E1f188b4B937eaD8cB1335DEAc896",
+    "CLOUDFLARE_R2_URL": "https://r2.k-nad.com",
   },
   /**
    * Bindings
