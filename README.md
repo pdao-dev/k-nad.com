@@ -153,8 +153,6 @@ CLOUDFLARE_D1_TOKEN=your-api-token
 
 # Authentication Secrets
 BETTER_AUTH_SECRET=your-random-secret-here
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
 
 # Storage
 CLOUDFLARE_R2_URL=your-r2-bucket-url
@@ -169,11 +167,7 @@ openssl rand -base64 32
 # Add to BETTER_AUTH_SECRET in .dev.vars
 ```
 
-**Google OAuth Setup:**
-Follow the [Better Auth Google documentation](https://www.better-auth.com/docs/authentication/google) to:
-1. Create a Google OAuth 2.0 application
-2. Get your Client ID and Client Secret
-3. Add authorized redirect URIs
+
 
 ### 6. Storage Setup & R2 URL Configuration
 
@@ -331,8 +325,6 @@ openssl rand -base64 32
 CLOUDFLARE_ACCOUNT_ID=your-account-id
 CLOUDFLARE_D1_TOKEN=your-api-token
 BETTER_AUTH_SECRET=your-generated-secret
-GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your-google-client-secret
 # Get this from R2 bucket settings: R2 Object Storage → Your Bucket → Settings → Public Development URL
 CLOUDFLARE_R2_URL=https://pub-a1b2c3d4e5f6g7h8i9j0.r2.dev
 ```
@@ -341,8 +333,6 @@ CLOUDFLARE_R2_URL=https://pub-a1b2c3d4e5f6g7h8i9j0.r2.dev
 ```bash
 # Add each secret to Cloudflare Workers
 echo "your-secret-here" | wrangler secret put BETTER_AUTH_SECRET
-echo "your-client-id" | wrangler secret put GOOGLE_CLIENT_ID
-echo "your-client-secret" | wrangler secret put GOOGLE_CLIENT_SECRET
 echo "your-r2-url" | wrangler secret put CLOUDFLARE_R2_URL
 ```
 
@@ -372,7 +362,7 @@ pnpm run db:inspect:local
 wrangler d1 execute your-app-name --local --command="
 INSERT INTO todos (id, title, description, completed, created_at, updated_at) VALUES
 ('1', 'Welcome to your app', 'This is a sample todo item', false, datetime('now'), datetime('now')),
-('2', 'Set up authentication', 'Configure Google OAuth', true, datetime('now'), datetime('now'));
+('2', 'Set up authentication', 'Configure email authentication', true, datetime('now'), datetime('now'));
 "
 ```
 
@@ -404,8 +394,6 @@ Go to your GitHub repository → Settings → Secrets and add:
 - `CLOUDFLARE_API_TOKEN` - Your API token from Step 2
 - `CLOUDFLARE_ACCOUNT_ID` - Your account ID
 - `BETTER_AUTH_SECRET` - Your auth secret
-- `GOOGLE_CLIENT_ID` - Your Google client ID
-- `GOOGLE_CLIENT_SECRET` - Your Google client secret
 - `CLOUDFLARE_R2_URL` - Your R2 bucket URL
 
 **Deploy Production Database:**
@@ -427,9 +415,7 @@ pnpm run db:inspect:prod
 3. Click "Add Custom Domain"
 4. Enter your domain (must be in your Cloudflare account)
 
-**Update OAuth Redirect URLs:**
-Add your custom domain to Google OAuth settings:
-- `https://yourdomain.com/api/auth/callback/google`
+
 
 ### Database Optimization
 
@@ -644,8 +630,6 @@ pnpm run cf-typegen
 ```bash
 # Add secrets to production environment
 pnpm run cf:secret BETTER_AUTH_SECRET
-pnpm run cf:secret GOOGLE_CLIENT_ID
-pnpm run cf:secret GOOGLE_CLIENT_SECRET
 ```
 
 ## 📊 Performance & Monitoring
