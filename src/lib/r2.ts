@@ -7,9 +7,16 @@ export interface UploadResult {
   error?: string;
 }
 
+type PutObjectBody =
+  | ArrayBuffer
+  | ArrayBufferView
+  | string
+  | ReadableStream
+  | Blob;
+
 interface PutObjectRequest {
   key: string;
-  body: ArrayBuffer;
+  body: PutObjectBody;
   contentType: string;
   cacheControl?: string;
   metadata?: Record<string, string>;
@@ -56,7 +63,7 @@ function ensurePublicBaseUrl(env: RuntimeEnv): string {
   return base.replace(/\/$/, "");
 }
 
-function ensureS3Config(env: RuntimeEnv): S3Config {
+function resolveS3Config(env: RuntimeEnv): S3Config | null {
   const base = env.CLOUDFLARE_R2_S3_API_URL as string | undefined;
   const accessKeyId = env.CLOUDFLARE_R2_ACCESS_KEY_ID as string | undefined;
   const secretAccessKey = env.CLOUDFLARE_R2_SECRET_ACCESS_KEY as
@@ -64,9 +71,7 @@ function ensureS3Config(env: RuntimeEnv): S3Config {
     | undefined;
 
   if (!base || !accessKeyId || !secretAccessKey) {
-    throw new Error(
-      "R2 S3 configuration missing (CLOUDFLARE_R2_S3_API_URL, CLOUDFLARE_R2_ACCESS_KEY_ID, CLOUDFLARE_R2_SECRET_ACCESS_KEY).",
-    );
+    return null;
   }
 
   return {
@@ -75,6 +80,18 @@ function ensureS3Config(env: RuntimeEnv): S3Config {
     secretAccessKey,
     region: AWS_REGION,
   };
+}
+
+function ensureS3Config(env: RuntimeEnv): S3Config {
+  const config = resolveS3Config(env);
+
+  if (!config) {
+    throw new Error(
+      "R2 S3 configuration missing (CLOUDFLARE_R2_S3_API_URL, CLOUDFLARE_R2_ACCESS_KEY_ID, CLOUDFLARE_R2_SECRET_ACCESS_KEY).",
+    );
+  }
+
+  return config;
 }
 
 function normalizeFolder(folder: string) {
@@ -146,13 +163,11 @@ export async function uploadJsonToR2(
     const key = options.filename
       ? sanitizeKey(options.filename)
       : createObjectKey(folder, "json");
-    const encoder = new TextEncoder();
-    const data = encoder.encode(JSON.stringify(payload, null, 2));
-    const buffer = toArrayBuffer(data);
+    const jsonPayload = JSON.stringify(payload, null, 2);
 
     await putObject(env, {
       key,
-      body: buffer,
+      body: jsonPayload,
       contentType: "application/json; charset=utf-8",
       cacheControl: CACHE_CONTROL,
     });
@@ -213,27 +228,56 @@ async function putObject(env: RuntimeEnv, request: PutObjectRequest) {
   const sanitizedKey = sanitizeKey(request.key);
 
   if (hasR2Binding(env)) {
-    await env.k_nad_prod.put(sanitizedKey, request.body, {
-      httpMetadata: {
-        contentType: request.contentType,
-        cacheControl: request.cacheControl,
-      },
-      customMetadata: request.metadata,
-    });
-    return;
+    try {
+      await env.k_nad_prod.put(sanitizedKey, request.body, {
+        httpMetadata: {
+          contentType: request.contentType,
+          cacheControl: request.cacheControl,
+        },
+        customMetadata: request.metadata,
+      });
+      return;
+    } catch (error) {
+      if (!shouldFallbackToS3(error)) {
+        throw error;
+      }
+
+      const fallbackConfig = resolveS3Config(env);
+      if (!fallbackConfig) {
+        throw error;
+      }
+
+      console.warn(
+        "R2 binding upload failed, retrying via signed S3 request",
+        error,
+      );
+
+      const fallbackRequest: Omit<PutObjectRequest, "body"> & {
+        body: ArrayBuffer;
+      } = {
+        ...request,
+        key: sanitizedKey,
+        body: await bodyToArrayBuffer(request.body),
+      };
+
+      await putObjectViaS3(fallbackRequest, fallbackConfig);
+      return;
+    }
   }
 
   const config = ensureS3Config(env);
-  await putObjectViaS3(
-    {
-      ...request,
-      key: sanitizedKey,
-    },
-    config,
-  );
+  const s3Request: Omit<PutObjectRequest, "body"> & { body: ArrayBuffer } = {
+    ...request,
+    key: sanitizedKey,
+    body: await bodyToArrayBuffer(request.body),
+  };
+  await putObjectViaS3(s3Request, config);
 }
 
-async function putObjectViaS3(request: PutObjectRequest, config: S3Config) {
+async function putObjectViaS3(
+  request: Omit<PutObjectRequest, "body"> & { body: ArrayBuffer },
+  config: S3Config,
+) {
   const metadataHeaders = buildMetadataHeaders(request.metadata);
   const headers: Record<string, string> = {
     "content-type": request.contentType,
@@ -255,6 +299,76 @@ async function putObjectViaS3(request: PutObjectRequest, config: S3Config) {
     },
     config,
   );
+}
+
+function shouldFallbackToS3(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  return /invalid input/i.test(error.message);
+}
+
+async function bodyToArrayBuffer(body: PutObjectBody): Promise<ArrayBuffer> {
+  if (typeof body === "string") {
+    return new TextEncoder().encode(body).buffer;
+  }
+
+  if (body instanceof ArrayBuffer) {
+    return body;
+  }
+
+  if (ArrayBuffer.isView(body)) {
+    return toArrayBuffer(body);
+  }
+
+  if (typeof Blob !== "undefined" && body instanceof Blob) {
+    return body.arrayBuffer();
+  }
+
+  if (isReadableStream(body)) {
+    return readableStreamToArrayBuffer(body);
+  }
+
+  throw new Error("Unsupported R2 payload type");
+}
+
+function isReadableStream(value: unknown): value is ReadableStream {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as ReadableStream).getReader === "function"
+  );
+}
+
+async function readableStreamToArrayBuffer(stream: ReadableStream) {
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalLength = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+
+    const chunk =
+      value instanceof Uint8Array
+        ? value
+        : value instanceof ArrayBuffer
+          ? new Uint8Array(value)
+          : new Uint8Array(value as ArrayBufferLike);
+
+    chunks.push(chunk);
+    totalLength += chunk.length;
+  }
+
+  const merged = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  return merged.buffer;
 }
 
 interface SignedRequestOptions {
