@@ -49,8 +49,6 @@ jobs:
         run: pnpm run preview:cf
         env:
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
 
       - name: Verify build output
         run: |
@@ -75,13 +73,9 @@ jobs:
           environment: preview
           secrets: |
             BETTER_AUTH_SECRET
-            GOOGLE_CLIENT_ID
-            GOOGLE_CLIENT_SECRET
             CLOUDFLARE_R2_URL
         env:
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           CLOUDFLARE_R2_URL: ${{ secrets.CLOUDFLARE_R2_URL }}
 
       - name: Comment PR with preview URL
@@ -132,8 +126,6 @@ jobs:
         run: pnpm run build:cf
         env:
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
 
       - name: Generate backup filename
         id: backup
@@ -162,13 +154,9 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           secrets: |
             BETTER_AUTH_SECRET
-            GOOGLE_CLIENT_ID
-            GOOGLE_CLIENT_SECRET
             CLOUDFLARE_R2_URL
         env:
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           CLOUDFLARE_R2_URL: ${{ secrets.CLOUDFLARE_R2_URL }}
 
       - name: Wait for deployment
