@@ -23,6 +23,21 @@ interface UploadStep {
 	status: StepStatus;
 }
 
+interface UploadApiResponse {
+	success: boolean;
+	error?: string;
+	upload?: {
+		id: string;
+		imageUrl: string;
+		metadataUrl: string;
+	};
+}
+
+interface ConfirmApiResponse {
+	success: boolean;
+	error?: string;
+}
+
 const STEP_BLUEPRINT: Array<Omit<UploadStep, "status">> = [
 	{
 		id: "prepare",
@@ -130,7 +145,9 @@ export default function UploadPage() {
 				method: "POST",
 				body: formData,
 			});
-			const payload = await response.json().catch(() => null);
+			const payload = (await response.json().catch(
+				() => null,
+			)) as UploadApiResponse | null;
 
 			if (!response.ok || !payload?.success) {
 				setStepStatus("prepare", "error");
@@ -144,11 +161,16 @@ export default function UploadPage() {
 			setStepStatus("prepare", "done");
 			setStepStatus("r2", "done");
 
+			const uploadResult = payload.upload;
+			if (!uploadResult) {
+				throw new Error("업로드 결과를 확인할 수 없습니다. 다시 시도해주세요.");
+			}
+
 			const metadataInput = {
 				title: trimmedTitle,
 				description: trimmedDescription,
-				mediaUrl: payload.upload.imageUrl as string,
-				metadataUrl: payload.upload.metadataUrl as string,
+				mediaUrl: uploadResult.imageUrl,
+				metadataUrl: uploadResult.metadataUrl,
 			};
 
 			setStepStatus("mint", "active");
@@ -158,7 +180,7 @@ export default function UploadPage() {
 					address: NFT_CONTRACT_ADDRESS as Address,
 					functionName: "mintWithMetadata",
 					args: [metadataInput],
-					account,
+					account: account as `0x${string}`,
 				});
 
 				await waitForTransactionReceipt(wagmiConfig, { hash: mintHash });
@@ -178,11 +200,13 @@ export default function UploadPage() {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({
-						imageId: payload.upload.id,
+						imageId: uploadResult.id,
 						transactionHash: mintHash,
 					}),
 				});
-				const confirmPayload = await confirmResponse.json().catch(() => null);
+				const confirmPayload = (await confirmResponse.json().catch(
+					() => null,
+				)) as ConfirmApiResponse | null;
 
 				if (!confirmResponse.ok || !confirmPayload?.success) {
 					throw new Error(

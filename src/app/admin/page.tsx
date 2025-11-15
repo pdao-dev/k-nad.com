@@ -21,6 +21,16 @@ interface PendingImage {
 
 type AuthState = "checking" | "login" | "dashboard";
 
+interface AdminSessionResponse {
+	authenticated: boolean;
+}
+
+interface AdminImagesResponse {
+	success: boolean;
+	images?: PendingImage[];
+	error?: string;
+}
+
 export default function AdminPage() {
 	const [authState, setAuthState] = useState<AuthState>("checking");
 	const [username, setUsername] = useState("");
@@ -34,7 +44,7 @@ export default function AdminPage() {
 		const checkSession = async () => {
 			try {
 				const res = await fetch("/api/admin/session");
-				const data = await res.json();
+				const data: AdminSessionResponse = await res.json();
 				if (data?.authenticated) {
 					setAuthState("dashboard");
 					void loadPendingImages();
@@ -59,9 +69,9 @@ export default function AdminPage() {
 				return;
 			}
 
-			const data = await res.json();
+			const data: AdminImagesResponse = await res.json();
 			if (data?.success) {
-				setPendingImages(data.images);
+				setPendingImages(data.images ?? []);
 			} else {
 				toast.error(data?.error ?? "대기 중인 이미지를 불러오지 못했습니다.");
 			}
@@ -82,7 +92,7 @@ export default function AdminPage() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ username, password }),
 			});
-			const data = await res.json();
+			const data = (await res.json()) as { success?: boolean; error?: string };
 			if (!res.ok) {
 				throw new Error(data?.error || "로그인에 실패했습니다.");
 			}
@@ -114,7 +124,7 @@ export default function AdminPage() {
 			const res = await fetch(`/api/admin/images/${id}/approve`, {
 				method: "POST",
 			});
-			const data = await res.json();
+			const data = (await res.json()) as { success?: boolean; error?: string };
 			if (!res.ok || !data?.success) {
 				throw new Error(data?.error || "승인에 실패했습니다.");
 			}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq, isNotNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, images } from "@/db";
 import { isAdminRequest } from "@/lib/admin-auth";
@@ -12,10 +12,16 @@ const paramsSchema = z.object({
 	id: z.string().uuid(),
 });
 
-export async function POST(
-	request: NextRequest,
-	{ params }: { params: { id: string } },
-) {
+type RouteContext = {
+	params: { id: string } | Promise<{ id: string }>;
+};
+
+async function resolveParams(context: RouteContext) {
+	const params = await context.params;
+	return paramsSchema.parse(params);
+}
+
+export async function POST(request: NextRequest, context: RouteContext) {
 	try {
 		if (!(await isAdminRequest(request))) {
 			return NextResponse.json(
@@ -24,7 +30,7 @@ export async function POST(
 			);
 		}
 
-		const { id } = paramsSchema.parse(params);
+		const { id } = await resolveParams(context);
 		const db = await getDb();
 
 		const [existing] = await db
