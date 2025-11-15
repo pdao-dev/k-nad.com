@@ -207,6 +207,7 @@ export async function deleteFromR2(key: string): Promise<void> {
 
 async function putObject(env: RuntimeEnv, request: PutObjectRequest) {
 	const sanitizedKey = sanitizeKey(request.key);
+	const bodyBuffer = toArrayBuffer(request.body);
 
 	if (hasR2Binding(env)) {
 		const options: R2PutOptions = {
@@ -220,7 +221,7 @@ async function putObject(env: RuntimeEnv, request: PutObjectRequest) {
 			options.customMetadata = request.metadata;
 		}
 
-		await env.k_nad_prod.put(sanitizedKey, request.body, options);
+		await env.k_nad_prod.put(sanitizedKey, bodyBuffer, options);
 		return;
 	}
 
@@ -228,6 +229,7 @@ async function putObject(env: RuntimeEnv, request: PutObjectRequest) {
 	await putObjectViaS3(
 		{
 			...request,
+			body: bodyBuffer,
 			key: sanitizedKey,
 		},
 		config,
