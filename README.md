@@ -210,6 +210,27 @@ https://pub-a1b2c3d4e5f6g7h8i9j0.r2.dev
 CLOUDFLARE_R2_URL=https://pub-a1b2c3d4e5f6g7h8i9j0.r2.dev
 ```
 
+**Step 4: (Optional) Add the R2 S3-Compatible API URL**
+
+When you need to generate presigned URLs or let the Worker expose the S3 API endpoint (so visitors can upload directly from the browser after receiving signed credentials), store the bucket-specific API URL as well:
+
+```bash
+# General format: https://<account-hash>.r2.cloudflarestorage.com/<bucket-name>
+CLOUDFLARE_R2_S3_API_URL=https://35b3305bfd095935de7070f4d99d6929.r2.cloudflarestorage.com/k-nad-prod
+```
+
+Keep this value in `.dev.vars` for local development and add it as a Worker secret for production:
+
+```bash
+# Set S3 API base as a secret on Workers
+echo "https://35b3305bfd095935de7070f4d99d6929.r2.cloudflarestorage.com/k-nad-prod" | wrangler secret put CLOUDFLARE_R2_S3_API_URL
+
+# R2 S3 API credentials (Access Key ID / Secret Access Key)
+# You can create these in Cloudflare Dashboard → R2 → Manage R2 API Tokens
+echo "R2ACCESSKEYID123" | wrangler secret put CLOUDFLARE_R2_ACCESS_KEY_ID
+echo "R2SECRETACCESSKEY456" | wrangler secret put CLOUDFLARE_R2_SECRET_ACCESS_KEY
+```
+
 **Note:** Replace the example URL with the actual URL you copied from your R2 bucket settings.
 
 **For Production - Custom Domain Setup (Required):**
@@ -385,6 +406,8 @@ Go to your GitHub repository → Settings → Secrets and add:
 - `CLOUDFLARE_ACCOUNT_ID` - Your account ID
 - `BETTER_AUTH_SECRET` - Your auth secret
 - `CLOUDFLARE_R2_URL` - Your R2 bucket URL
+- `CLOUDFLARE_R2_S3_API_URL` - The S3 API endpoint (`https://<hash>.r2.cloudflarestorage.com/<bucket>`)
+- `CLOUDFLARE_R2_ACCESS_KEY_ID` / `CLOUDFLARE_R2_SECRET_ACCESS_KEY` - Keys used for SigV4 uploads from the Worker
 
 **Deploy Production Database:**
 ```bash

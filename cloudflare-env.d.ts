@@ -11,6 +11,9 @@ declare namespace Cloudflare {
 		CLOUDFLARE_ACCOUNT_ID: string;
 		CLOUDFLARE_D1_TOKEN: string;
 		CLOUDFLARE_R2_URL: string;
+		CLOUDFLARE_R2_S3_API_URL: string;
+		CLOUDFLARE_R2_ACCESS_KEY_ID: string;
+		CLOUDFLARE_R2_SECRET_ACCESS_KEY: string;
 		CLOUDFLARE_API_TOKEN: string;
 		BETTER_AUTH_SECRET: string;
 		BETTER_AUTH_URL: string;
