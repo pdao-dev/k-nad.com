@@ -16,9 +16,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "K-nads.com : 코리아나드들의 오프라인 아카이브",
+	title: "K-NADS ARCHIVE : 코리아나드들의 오프라인 이벤트 아카이브",
 	description:
-		"한국에서 열리는 오프라인 이벤트 사진들을 NFT로 업로드하여 영원히 아카이빙하는 Web3 갤러리 플랫폼",
+		"강력한 코리아 모나드 커뮤니티를 느껴보세요",
+	icons: {
+		icon: "/logo.PNG",
+		shortcut: "/logo.PNG",
+		apple: "/logo.PNG",
+	},
 };
 
 export const dynamic = "force-dynamic";

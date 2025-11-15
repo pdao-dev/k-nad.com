@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { WalletButton } from "@/components/wallet/WalletButton";
 
 export function Navbar() {
@@ -10,8 +11,14 @@ export function Navbar() {
 				<div className="flex items-center justify-between">
 					{/* Logo */}
 					<Link href="/" className="flex items-center gap-3 group">
-						<div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30 group-hover:shadow-violet-500/50 transition-all">
-							<span className="text-white font-black text-xl">K</span>
+						<div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-violet-500/30 group-hover:shadow-violet-500/50 transition-all relative">
+							<Image
+								src="/logo.PNG"
+								alt="K-NADS Logo"
+								width={40}
+								height={40}
+								className="object-cover"
+							/>
 						</div>
 						<div className="flex flex-col">
 							<span className="text-white font-bold text-lg leading-none">

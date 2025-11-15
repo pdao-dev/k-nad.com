@@ -79,7 +79,7 @@ export default async function HomePage() {
 							Community Archive
 						</h2>
 						<p className="text-violet-300 text-lg">
-							한국나드들이 공유한 소중한 순간들
+							코리아나드들이 공유한 소중한 순간들
 						</p>
 					</div>
 

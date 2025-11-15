@@ -44,18 +44,16 @@ export function HeroSection() {
 				</div>
 
 				{/* Title */}
-				<h1 className="hero-title mb-4 animate-fade-in">K-NADS.COM</h1>
+				<h1 className="hero-title mb-4 animate-fade-in">K-NADS ARCHIVE</h1>
 
 				{/* Subtitle */}
 				<p className="hero-subtitle mb-6 max-w-3xl">
-					코리아나드들의 오프라인 아카이브
+					코리아나드들의 오프라인 이벤트 아카이브
 				</p>
 
 				{/* Description */}
 				<p className="body-text mb-12 max-w-2xl text-base md:text-lg">
-					한국의 오프라인 이벤트 순간들을 NFT로 영원히 보존하세요
-					<br />
-					블록체인 위에 기록되는 당신의 소중한 추억
+					강력한 코리아 모나드 커뮤니티를 느껴보세요
 				</p>
 
 				{/* Upload Button */}
@@ -65,20 +63,20 @@ export function HeroSection() {
 					className="primary-button group flex items-center gap-3"
 				>
 					<Upload className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-					<span>Upload Memory</span>
+					<span>Upload .Nads</span>
 				</button>
 
 			</div>
 
 			{/* Scroll Indicator */}
-			<div className="absolute bottom-10 z-10 flex flex-col items-center gap-2 animate-bounce">
-				<p className="text-sm text-violet-300 font-medium">Explore Gallery</p>
+			<div className="absolute bottom-10 z-10 flex flex-col items-center gap-4 animate-bounce">
+				<p className="text-lg text-violet-300 font-bold">Explore Gallery</p>
 				<svg
-					className="w-6 h-6 text-violet-400"
+					className="w-10 h-10 text-violet-400"
 					fill="none"
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					strokeWidth="2"
+					strokeWidth="3"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
 				>
