@@ -9,7 +9,7 @@ export interface UploadResult {
 
 interface PutObjectRequest {
 	key: string;
-	body: ArrayBuffer;
+	body: ArrayBuffer | ArrayBufferView;
 	contentType: string;
 	cacheControl?: string;
 	metadata?: Record<string, string>;
@@ -146,13 +146,9 @@ export async function uploadJsonToR2(
 		const key = options.filename
 			? sanitizeKey(options.filename)
 			: createObjectKey(folder, "json");
-		const encoder = new TextEncoder();
-		const data = encoder.encode(JSON.stringify(payload, null, 2));
-		const buffer = toArrayBuffer(data);
-
 		await putObject(env, {
 			key,
-			body: buffer,
+			body: new TextEncoder().encode(JSON.stringify(payload, null, 2)),
 			contentType: "application/json; charset=utf-8",
 			cacheControl: CACHE_CONTROL,
 		});
@@ -213,13 +209,18 @@ async function putObject(env: RuntimeEnv, request: PutObjectRequest) {
 	const sanitizedKey = sanitizeKey(request.key);
 
 	if (hasR2Binding(env)) {
-		await env.k_nad_prod.put(sanitizedKey, request.body, {
+		const options: R2PutOptions = {
 			httpMetadata: {
 				contentType: request.contentType,
 				cacheControl: request.cacheControl,
 			},
-			customMetadata: request.metadata,
-		});
+		};
+
+		if (request.metadata && Object.keys(request.metadata).length > 0) {
+			options.customMetadata = request.metadata;
+		}
+
+		await env.k_nad_prod.put(sanitizedKey, request.body, options);
 		return;
 	}
 
@@ -260,7 +261,7 @@ async function putObjectViaS3(request: PutObjectRequest, config: S3Config) {
 interface SignedRequestOptions {
 	method: string;
 	key: string;
-	body?: ArrayBuffer;
+	body?: ArrayBuffer | ArrayBufferView;
 	headers?: Record<string, string>;
 }
 
@@ -269,10 +270,12 @@ async function sendSignedS3Request(
 	config: S3Config,
 ) {
 	const method = options.method.toUpperCase();
-	const url = new URL(`${config.baseUrl}/${sanitizeKey(options.key)}`);
-	const body = options.body ?? new ArrayBuffer(0);
-	const payloadHash = await sha256Hex(body);
-	const { amzDate, dateStamp } = getAmzDateParts(new Date());
+		const url = new URL(`${config.baseUrl}/${sanitizeKey(options.key)}`);
+		const bodyBuffer = options.body
+			? toArrayBuffer(options.body)
+			: new ArrayBuffer(0);
+		const payloadHash = await sha256Hex(bodyBuffer);
+		const { amzDate, dateStamp } = getAmzDateParts(new Date());
 
 	const headersForSigning: Record<string, string> = {
 		host: url.host,
@@ -280,10 +283,10 @@ async function sendSignedS3Request(
 		"x-amz-date": amzDate,
 	};
 
-	if (options.headers) {
-		for (const [name, value] of Object.entries(options.headers)) {
-			if (value === undefined || value === null) {
-				continue;
+		if (options.headers) {
+			for (const [name, value] of Object.entries(options.headers)) {
+				if (value === undefined || value === null) {
+					continue;
 			}
 			headersForSigning[name.toLowerCase()] = value.toString();
 		}
@@ -333,7 +336,7 @@ async function sendSignedS3Request(
 	};
 
 	if (method === "PUT" || method === "POST") {
-		requestInit.body = body;
+		requestInit.body = bodyBuffer;
 	}
 
 	const response = await fetch(url.toString(), requestInit);
