@@ -68,33 +68,6 @@ export function HeroSection() {
 					<span>Upload Memory</span>
 				</button>
 
-				{/* Stats */}
-				<div className="mt-16 grid grid-cols-3 gap-8 md:gap-16">
-					<div className="text-center">
-						<div className="text-3xl md:text-4xl font-bold text-white mb-2">
-							∞
-						</div>
-						<div className="text-sm text-gray-400 uppercase tracking-wide">
-							Forever
-						</div>
-					</div>
-					<div className="text-center">
-						<div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent mb-2">
-							Web3
-						</div>
-						<div className="text-sm text-gray-400 uppercase tracking-wide">
-							On-Chain
-						</div>
-					</div>
-					<div className="text-center">
-						<div className="text-3xl md:text-4xl font-bold text-white mb-2">
-							🇰🇷
-						</div>
-						<div className="text-sm text-gray-400 uppercase tracking-wide">
-							Korea
-						</div>
-					</div>
-				</div>
 			</div>
 
 			{/* Scroll Indicator */}

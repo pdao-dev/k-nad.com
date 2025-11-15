@@ -47,7 +47,7 @@ const STEP_BLUEPRINT: Array<Omit<UploadStep, "status">> = [
 	{
 		id: "r2",
 		label: "Cloudflare R2",
-		description: "원본 이미지를 영구 스토리지에 업로드합니다.",
+		description: "원본 이미지를 R2 스토리지에 업로드합니다.",
 	},
 	{
 		id: "mint",
@@ -309,7 +309,7 @@ export default function UploadPage() {
 							id="title"
 							value={title}
 							onChange={(e) => setTitle(e.target.value)}
-							placeholder="예: BTS 콘서트 2024"
+							placeholder="예: 모나드 밋업 2024"
 							className="w-full px-4 py-3 bg-black/30 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
 						/>
 					</div>
