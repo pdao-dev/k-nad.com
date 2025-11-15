@@ -35,8 +35,7 @@ Combined with **Next.js 15**, you get modern React features, Server Components, 
 - 🌐 **Cloudflare Workers** - Serverless edge compute platform
 - 🗃️ **Cloudflare D1** - Distributed SQLite database at the edge
 - 📦 **Cloudflare R2** - S3-compatible object storage
-- 🤖 **Cloudflare Workers AI** - Edge AI inference with OpenSource models
-- 🔑 **Better Auth** - Modern authentication with Google OAuth
+- 🔑 **Better Auth** - Modern authentication with email/password
 - 🛠️ **Drizzle ORM** - TypeScript-first database toolkit
 
 ### 🚀 **DevOps & Deployment**
@@ -49,7 +48,7 @@ Combined with **Next.js 15**, you get modern React features, Server Components, 
 ### 📊 **Data Flow Architecture**
 - **Fetching**: Server Actions + React Server Components for optimal performance
 - **Mutations**: Server Actions with automatic revalidation
-- **AI Processing**: Edge AI inference with Cloudflare Workers AI
+
 - **Type Safety**: End-to-end TypeScript from database to UI
 - **Caching**: Built-in Next.js caching with Cloudflare edge caching
 
@@ -62,7 +61,7 @@ src/
 ├── app/                    # Next.js App Router
 │   ├── (auth)/            # Auth-related pages
 │   ├── api/               # API routes (for external access)
-│   │   └── summarize/     # AI summarization endpoint
+
 │   ├── dashboard/         # Dashboard pages
 │   └── globals.css        # Global styles
 ├── components/            # Shared UI components
@@ -86,7 +85,7 @@ src/
 │       ├── models/       # Todo models
 │       └── schemas/      # Todo schemas
 ├── services/              # Business logic services
-│   └── summarizer.service.ts  # AI summarization service
+
 └── drizzle/              # Database migrations
 ```
 
@@ -113,16 +112,14 @@ Create an API token for Wrangler authentication:
 2. Select **Create Token** > find **Edit Cloudflare Workers** > select **Use Template**
 3. Customize your token name (e.g., "Next.js Cloudflare Template")
 4. Scope your token to your account and zones (if using custom domains)
-5. **Add additional permissions** for D1 database and AI access:
+5. **Add additional permissions** for D1 database access:
    - Account - D1:Edit
    - Account - D1:Read
-   - Account - Cloudflare Workers AI:Read
 
 **Final Token Permissions:**
 - All permissions from "Edit Cloudflare Workers" template
 - Account - D1:Edit (for database operations)
 - Account - D1:Read (for database queries)
-- Account - Cloudflare Workers AI:Read (for AI inference)
 
 ### 3. Clone and Setup
 
@@ -308,14 +305,7 @@ openssl rand -base64 32
 # Or use online generator: https://generate-secret.vercel.app/32
 ```
 
-**Configure Google OAuth:**
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing one
-3. Enable Google+ API
-4. Create OAuth 2.0 credentials
-5. Add authorized redirect URIs:
-   - `http://localhost:3000/api/auth/callback/google` (development)
-   - `https://your-app.your-subdomain.workers.dev/api/auth/callback/google` (production)
+
 
 ### Step 4: Environment Configuration
 
@@ -539,71 +529,7 @@ pnpm run dev:remote
 **After wrangler.jsonc changes:**
 1. `pnpm run cf-typegen` - Regenerate types
 
-## 🤖 AI Development & Testing
 
-### Testing the AI API
-
-**⚠️ Authentication Required**: Login to your app first, then test the API.
-
-**Browser Console (Easiest):**
-1. Login at `http://localhost:3000`
-2. Open DevTools Console (F12)
-3. Run:
-```javascript
-fetch('/api/summarize', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  credentials: 'include',
-  body: JSON.stringify({
-    text: "Your text to summarize here...",
-    config: { maxLength: 100, style: "concise" }
-  })
-}).then(r => r.json()).then(console.log);
-```
-
-**cURL (with session cookies):**
-1. Login in browser first
-2. DevTools → Application → Cookies → Copy `better-auth.session_token`
-3. Use cookie in cURL:
-```bash
-curl -X POST http://localhost:3000/api/summarize \
-  -H "Content-Type: application/json" \
-  -H "Cookie: better-auth.session_token=your-token-here" \
-  -d '{"text": "Your text here...", "config": {"maxLength": 100}}'
-```
-
-**Postman:**
-1. Login in browser, copy session cookie from DevTools
-2. Add header: `Cookie: better-auth.session_token=your-token-here`
-
-**Unauthenticated Request Response:**
-```json
-{
-  "success": false,
-  "error": "Authentication required",
-  "data": null
-}
-```
-
-
-### AI Service Architecture
-
-The AI integration follows a clean service-based architecture:
-
-1. **API Route** (`/api/summarize`) - Handles HTTP requests, authentication, and validation
-2. **Authentication Layer** - Validates user session before processing requests
-3. **SummarizerService** - Encapsulates AI business logic
-4. **Error Handling** - Comprehensive error responses with proper status codes
-5. **Type Safety** - Full TypeScript support with Zod validation
-
-### AI Model Options
-
-Cloudflare Workers AI supports various models:
-- **@cf/meta/llama-3.2-1b-instruct** - Text generation (current)
-- **@cf/meta/llama-3.2-3b-instruct** - More capable text generation
-- **@cf/meta/m2m100-1.2b** - Translation
-- **@cf/baai/bge-base-en-v1.5** - Text embeddings
-- **@cf/microsoft/resnet-50** - Image classification
 
 ## 🔧 Advanced Configuration
 

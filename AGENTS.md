@@ -4,9 +4,8 @@
 **K-nad.com**은 한국에서 열리는 오프라인 이벤트 사진들을 NFT로 업로드하여 아카이빙하는 Web3 갤러리 플랫폼입니다.
 
 - **체인**: Monad Testnet
-- **참고 디자인**: [haerin.network](https://haerin.network/)
 - **백엔드**: Cloudflare Workers + D1 + R2
-- **프론트엔드**: Next.js 15 + React + TailwindCSS
+- **프론트엔드**: Next.js 16 + React + TailwindCSS
 
 ---
 
@@ -20,7 +19,6 @@
 // 구현 사항:
 // - 프로젝트 타이틀 "k-nad.com" 대형 디스플레이
 // - 이미지 업로드 버튼 (중앙 배치)
-// - haerin.network 스타일의 그라데이션 배경
 // - 스크롤 인디케이터
 ```
 
@@ -30,7 +28,7 @@
 
 **디자인 요구사항**:
 - Typography: 큰 타이틀 (font-size: 4rem 이상)
-- 그라데이션 배경 (haerin.network 스타일)
+- 그라데이션 배경
 - Glassmorphism 효과의 업로드 버튼
 
 ---
@@ -123,14 +121,7 @@ interface NFTImage {
 // - WalletConnect
 ```
 
-**설치 필요한 패키지**:
-```bash
-pnpm add @solana/wallet-adapter-react @solana/wallet-adapter-react-ui
-pnpm add @solana/wallet-adapter-wallets @solana/web3.js
-pnpm add ethers # Monad는 EVM 호환
-```
-
-**주의**: Monad는 EVM 체인이므로 Ethereum 기반 지갑 연동 필요, Phantom 포함
+**주의**: Monad는 EVM 체인이므로 Ethereum 기반 지갑 연동 필요
 ```typescript
 // MetaMask 우선 권장
 ```
@@ -414,7 +405,7 @@ export async function reportImage(
 
 ---
 
-## 디자인 시스템 (haerin.network 참고)
+## 디자인 시스템
 
 ### Color Palette
 ```css
@@ -601,62 +592,6 @@ src/
 
 ---
 
-## 필수 패키지 설치
-
-```bash
-# Wallet Adapters
-pnpm add ethers
-
-# Image Upload & Processing
-pnpm add react-dropzone
-
-# Masonry Layout
-pnpm add react-masonry-css
-
-# Infinite Scroll
-pnpm add react-virtuoso
-
-# Date Formatting
-pnpm add date-fns
-
-# Clipboard
-pnpm add copy-to-clipboard
-
-# Icons
-pnpm add lucide-react # 이미 설치됨
-```
-
----
-
-## 환경 변수 설정
-
-```env
-# .dev.vars
-# Cloudflare (이미 존재)
-CLOUDFLARE_ACCOUNT_ID=your-account-id
-CLOUDFLARE_D1_TOKEN=your-api-token
-CLOUDFLARE_R2_URL=your-r2-url
-
-# Monad Testnet
-NEXT_PUBLIC_MONAD_RPC_URL=https://testnet-rpc.monad.xyz
-NEXT_PUBLIC_MONAD_CHAIN_ID=41454
-NEXT_PUBLIC_NFT_CONTRACT_ADDRESS=0x...
-
-# Application
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
----
-
-## 참고 링크
-
-- [Monad Documentation](https://docs.monad.xyz/)
-- [Ethers.js Documentation](https://docs.ethers.org/)
-- [Cloudflare R2 Documentation](https://developers.cloudflare.com/r2/)
-- [Haerin Network](https://haerin.network/)
-
----
-
 ## 주의사항
 
 1. **Monad Testnet Faucet**: 테스트를 위한 토큰 필요
@@ -671,12 +606,6 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 1. 데이터베이스 스키마 생성 및 마이그레이션
 2. NFT 스마트 컨트랙트 개발 및 배포
-3. 기본 UI 컴포넌트 개발 (haerin.network 스타일)
+3. 기본 UI 컴포넌트 개발
 4. 지갑 연결 기능 구현
 5. 갤러리 그리드 구현
-
----
-
-**작성일**: 2025-01-15
-**프로젝트**: K-nad.com (Monad Hackathon)
-**담당**: Frontend Development
